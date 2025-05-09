@@ -1,0 +1,33 @@
+<?php
+
+namespace Tourze\CurrencyManageBundle\Tests\DependencyInjection;
+
+use PHPUnit\Framework\TestCase;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Tourze\CurrencyManageBundle\DependencyInjection\CurrencyManageExtension;
+use Tourze\CurrencyManageBundle\Service\CurrencyService;
+
+class CurrencyManageExtensionTest extends TestCase
+{
+    public function testLoad_registersServices(): void
+    {
+        $container = new ContainerBuilder();
+        $extension = new CurrencyManageExtension();
+        
+        $extension->load([], $container);
+        
+        // 验证服务是否正确注册
+        // 由于使用了resource配置服务，所以应该检查服务接口和实现类的类名
+        $this->assertTrue($container->has('Tourze\CurrencyManageBundle\Service\CurrencyServiceImpl'));
+        $this->assertTrue($container->has('Tourze\CurrencyManageBundle\Service\CurrencyManager'));
+        
+        // 验证服务别名
+        // 由于使用了AsAlias属性，所以检查别名是否存在
+        $this->assertTrue($container->hasAlias(CurrencyService::class));
+        
+        // 获取所有服务定义，检查是否包含我们需要的服务
+        $serviceIds = $container->getServiceIds();
+        $this->assertContains('Tourze\CurrencyManageBundle\Service\CurrencyServiceImpl', $serviceIds);
+        $this->assertContains('Tourze\CurrencyManageBundle\Service\CurrencyManager', $serviceIds);
+    }
+} 
