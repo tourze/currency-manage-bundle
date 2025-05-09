@@ -4,14 +4,14 @@ namespace Tourze\CurrencyManageBundle\Service;
 
 use Brick\Money\Currency;
 use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use Symfony\Component\DependencyInjection\Attribute\AutoconfigureTag;
 use Tourze\EnumExtra\SelectDataFetcher;
-use Tourze\Symfony\AopCoroutineBundle\Attribute\AsCoroutine;
 
 /**
  * 通过这个服务获取系统所有货币的信息
  */
 #[Autoconfigure(lazy: true, public: true)]
-#[AsCoroutine]
+#[AutoconfigureTag('as-coroutine')]
 class CurrencyManager implements SelectDataFetcher
 {
     public function __construct(
