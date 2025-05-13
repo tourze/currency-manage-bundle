@@ -23,7 +23,7 @@ class IntegrationTestKernel extends BaseKernel
         // 设置测试用的环境变量
         $_ENV['DEFAULT_PRICE_PRECISION'] = 2;
         $_ENV['PRICE_PRECISION_STYLE'] = 'default';
-        
+
         parent::__construct($environment, $debug);
     }
 
