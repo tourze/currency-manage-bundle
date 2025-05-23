@@ -4,5 +4,7 @@ services:
     autowire: true      # Automatically injects dependencies in your services.
     autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-  Tourze\CurrencyManageBundle\Service\:
-    resource: '../../Service/'
+  Tourze\CurrencyManageBundle\Command\:
+    resource: '../../Command/'
+  Tourze\CurrencyManageBundle\Repository\:
+    resource: '../../Repository/'
