@@ -2,10 +2,10 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Integration;
 
+use CreditBundle\Service\CurrencyManager;
+use CreditBundle\Service\CurrencyServiceInterface;
+use CreditBundle\Service\DefaultCurrencyServiceInterface;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
-use Tourze\CurrencyManageBundle\Service\CurrencyManager;
-use Tourze\CurrencyManageBundle\Service\CurrencyService;
-use Tourze\CurrencyManageBundle\Service\CurrencyServiceImpl;
 
 class CurrencyManageBundleIntegrationTest extends KernelTestCase
 {
@@ -27,11 +27,11 @@ class CurrencyManageBundleIntegrationTest extends KernelTestCase
         $container = self::getContainer();
 
         // 测试服务是否在容器中
-        $this->assertTrue($container->has(CurrencyService::class));
+        $this->assertTrue($container->has(CurrencyServiceInterface::class));
 
         // 获取服务并验证其类型
-        $service = $container->get(CurrencyService::class);
-        $this->assertInstanceOf(CurrencyServiceImpl::class, $service);
+        $service = $container->get(CurrencyServiceInterface::class);
+        $this->assertInstanceOf(DefaultCurrencyServiceInterface::class, $service);
 
         // 测试服务功能
         $currencies = iterator_to_array($service->getCurrencies());
