@@ -12,12 +12,14 @@ use Symfony\Contracts\HttpClient\ResponseInterface;
 use Tourze\CurrencyManageBundle\Command\UpdateCurrencyRateCommand;
 use Tourze\CurrencyManageBundle\Entity\Currency;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRepository;
+use Tourze\CurrencyManageBundle\Service\FlagService;
 
 class UpdateCurrencyRateCommandTest extends TestCase
 {
     private UpdateCurrencyRateCommand $command;
     private CurrencyRepository&MockObject $repository;
     private HttpClientInterface&MockObject $httpClient;
+    private FlagService&MockObject $flagService;
     private InputInterface&MockObject $input;
     private OutputInterface&MockObject $output;
 
@@ -25,12 +27,16 @@ class UpdateCurrencyRateCommandTest extends TestCase
     {
         $this->repository = $this->createMock(CurrencyRepository::class);
         $this->httpClient = $this->createMock(HttpClientInterface::class);
+        $this->flagService = $this->createMock(FlagService::class);
         $this->input = $this->createMock(InputInterface::class);
         $this->output = $this->createMock(OutputInterface::class);
         
+        $this->flagService->method('getFlagCodeFromCurrency')->willReturn('us');
+        
         $this->command = new UpdateCurrencyRateCommand(
             $this->repository,
-            $this->httpClient
+            $this->httpClient,
+            $this->flagService
         );
     }
 

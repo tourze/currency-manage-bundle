@@ -10,6 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tourze\CurrencyManageBundle\Entity\Currency as CurrencyEntity;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRepository;
+use Tourze\CurrencyManageBundle\Service\FlagService;
 use Tourze\GBT12406\Currency;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 use Yiisoft\Json\Json;
@@ -21,6 +22,7 @@ class UpdateCurrencyRateCommand extends Command
     public function __construct(
         private readonly CurrencyRepository $currencyRepository,
         private readonly HttpClientInterface $httpClient,
+        private readonly FlagService $flagService,
     ) {
         parent::__construct();
     }
@@ -49,6 +51,8 @@ class UpdateCurrencyRateCommand extends Command
                 $currencyEntity->setName($currencyEnum->getLabel());
                 // 设置默认符号，可以根据需要进一步完善
                 $currencyEntity->setSymbol($currencyCode);
+                // 设置默认国旗代码（基于货币代码推断）
+                $currencyEntity->setFlag($this->flagService->getFlagCodeFromCurrency($currencyCode));
             }
 
             // 更新汇率和时间
