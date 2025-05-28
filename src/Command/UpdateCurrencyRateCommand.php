@@ -8,7 +8,9 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Tourze\CurrencyManageBundle\Entity\Currency as CurrencyEntity;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRepository;
+use Tourze\GBT12406\Currency;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 use Yiisoft\Json\Json;
 
@@ -28,16 +30,42 @@ class UpdateCurrencyRateCommand extends Command
         $response = $this->httpClient->request('GET', 'https://api.exchangerate-api.com/v4/latest/CNY');
         $json = Json::decode($response->getContent());
 
-        $models = $this->currencyRepository->findAll();
-        foreach ($models as $model) {
-            if (!isset($json['rates'][$model->getCode()])) {
+        $updatedCount = 0;
+
+        // 遍历所有货币枚举值
+        foreach (Currency::cases() as $currencyEnum) {
+            $currencyCode = $currencyEnum->value;
+
+            // 检查API响应中是否包含该货币的汇率
+            if (!isset($json['rates'][$currencyCode])) {
                 continue;
             }
 
-            $model->setRateToCny($json['rates'][$model->getCode()]);
-            $model->setUpdateTime(Carbon::createFromTimestamp($json['time_last_updated'], date_default_timezone_get()));
-            $this->currencyRepository->save($model);
+            // 查找或创建货币实体
+            $currencyEntity = $this->currencyRepository->findByCode($currencyCode);
+            if (!$currencyEntity) {
+                $currencyEntity = new CurrencyEntity();
+                $currencyEntity->setCode($currencyCode);
+                $currencyEntity->setName($currencyEnum->getLabel());
+                // 设置默认符号，可以根据需要进一步完善
+                $currencyEntity->setSymbol($currencyCode);
+            }
+
+            // 更新汇率和时间
+            $currencyEntity->setRateToCny($json['rates'][$currencyCode]);
+            $currencyEntity->setUpdateTime(Carbon::createFromTimestamp($json['time_last_updated'], date_default_timezone_get()));
+
+            // 只persist，不立即flush
+            $this->currencyRepository->save($currencyEntity, false);
+            $updatedCount++;
         }
+
+        // 批量提交所有更改
+        if ($updatedCount > 0) {
+            $this->currencyRepository->flush();
+        }
+
+        $output->writeln("成功更新了 {$updatedCount} 个货币的汇率信息");
 
         return Command::SUCCESS;
     }

@@ -52,4 +52,12 @@ class CurrencyRepository extends ServiceEntityRepository
     {
         return $this->findOneBy(['code' => $code]);
     }
+
+    /**
+     * 刷新所有待处理的更改
+     */
+    public function flush(): void
+    {
+        $this->getEntityManager()->flush();
+    }
 }

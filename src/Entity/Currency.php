@@ -7,18 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRepository;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
-use Tourze\EasyAdmin\Attribute\Action\Creatable;
-use Tourze\EasyAdmin\Attribute\Action\Deletable;
-use Tourze\EasyAdmin\Attribute\Action\Editable;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Field\FormField;
-use Tourze\EasyAdmin\Attribute\Filter\Keyword;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 
-#[AsPermission('货币管理')]
-#[Creatable]
-#[Editable]
-#[Deletable]
 #[ORM\Entity(repositoryClass: CurrencyRepository::class)]
 #[ORM\Table(name: 'starhome_currency', options:["comment" => '货币管理'])]
 class Currency implements \Stringable
@@ -28,30 +17,18 @@ class Currency implements \Stringable
     #[ORM\Column]
     private ?int $id = null;
 
-    #[Keyword]
-    #[ListColumn]
-    #[FormField]
     #[ORM\Column(name: 'flags', length: 32, options: ['comment' => '货币标识'])]
     private ?string $symbol = null;
 
-    #[Keyword]
-    #[ListColumn]
-    #[FormField]
     #[ORM\Column(length: 32, options: ['comment' => '货币名称'])]
     private ?string $name = '';
 
-    #[Keyword]
-    #[ListColumn]
-    #[FormField]
     #[ORM\Column(length: 32, options: ['comment' => '货币代码'])]
     private ?string $code = '';
 
-    #[ListColumn(sorter: true)]
-    #[FormField]
     #[ORM\Column(name: 'rateToCny', nullable: true, options: ['comment' => '对人民币汇率'])]
     private ?float $rateToCny = null;
 
-    #[ListColumn]
     #[CreateTimeColumn]
     #[UpdateTimeColumn]
     #[ORM\Column(name: 'rateUpdateDate', type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '汇率更新时间'])]

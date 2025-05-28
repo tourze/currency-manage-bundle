@@ -6,5 +6,9 @@ services:
 
   Tourze\CurrencyManageBundle\Command\:
     resource: '../../Command/'
+  Tourze\CurrencyManageBundle\Controller\:
+    resource: '../../Controller/'
   Tourze\CurrencyManageBundle\Repository\:
     resource: '../../Repository/'
+  Tourze\CurrencyManageBundle\Service\:
+    resource: '../../Service/'

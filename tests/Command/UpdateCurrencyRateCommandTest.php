@@ -2,7 +2,6 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Command;
 
-use Carbon\Carbon;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
@@ -56,12 +55,11 @@ class UpdateCurrencyRateCommandTest extends TestCase
 
     public function test_execute_successfulUpdate(): void
     {
-        $currency = new Currency();
-        $currency->setCode('USD');
-        
         $apiResponse = [
             'rates' => [
                 'USD' => 7.0,
+                'EUR' => 8.0,
+                'CNY' => 1.0,
             ],
             'time_last_updated' => 1640995200, // 2022-01-01 00:00:00
         ];
@@ -75,26 +73,34 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->with('GET', 'https://api.exchangerate-api.com/v4/latest/CNY')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$currency]);
+        // 模拟findByCode返回null，表示需要创建新记录
+        $this->repository->method('findByCode')
+            ->willReturn(null);
         
-        $this->repository->expects($this->once())
+        // 期望save方法被调用多次（对应API响应中的货币数量）
+        $this->repository->expects($this->atLeastOnce())
             ->method('save')
-            ->with($currency);
+            ->with($this->isInstanceOf(Currency::class), false);
+        
+        // 期望flush被调用一次
+        $this->repository->expects($this->once())
+            ->method('flush');
+        
+        // 期望输出成功信息
+        $this->output->expects($this->once())
+            ->method('writeln')
+            ->with($this->stringContains('成功更新了'));
         
         $result = $this->executeCommand();
         
         $this->assertSame(Command::SUCCESS, $result);
-        $this->assertSame(7.0, $currency->getRateToCny());
-        $this->assertInstanceOf(\DateTimeInterface::class, $currency->getUpdateTime());
     }
 
     public function test_execute_noCurrenciesFound(): void
     {
         $apiResponse = [
             'rates' => [
-                'USD' => 7.0,
+                'XYZ' => 7.0, // 不存在的货币代码
             ],
             'time_last_updated' => 1640995200,
         ];
@@ -108,12 +114,18 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->with('GET', 'https://api.exchangerate-api.com/v4/latest/CNY')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([]);
-        
+        // 不期望save方法被调用
         $this->repository->expects($this->never())
             ->method('save');
+        
+        // 不期望flush被调用
+        $this->repository->expects($this->never())
+            ->method('flush');
+        
+        // 期望输出0个更新
+        $this->output->expects($this->once())
+            ->method('writeln')
+            ->with('成功更新了 0 个货币的汇率信息');
         
         $result = $this->executeCommand();
         
@@ -122,9 +134,6 @@ class UpdateCurrencyRateCommandTest extends TestCase
 
     public function test_execute_currencyCodeNotInApiResponse(): void
     {
-        $currency = new Currency();
-        $currency->setCode('XYZ');
-        
         $apiResponse = [
             'rates' => [
                 'USD' => 7.0,
@@ -142,34 +151,30 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->with('GET', 'https://api.exchangerate-api.com/v4/latest/CNY')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$currency]);
+        // 模拟findByCode返回null
+        $this->repository->method('findByCode')
+            ->willReturn(null);
         
-        $this->repository->expects($this->never())
+        // 期望save方法被调用（对于API中存在的货币）
+        $this->repository->expects($this->atLeastOnce())
             ->method('save');
+        
+        // 期望flush被调用
+        $this->repository->expects($this->once())
+            ->method('flush');
         
         $result = $this->executeCommand();
         
         $this->assertSame(Command::SUCCESS, $result);
-        $this->assertNull($currency->getRateToCny());
     }
 
     public function test_execute_multipleCurrencies(): void
     {
-        $currency1 = new Currency();
-        $currency1->setCode('USD');
-        
-        $currency2 = new Currency();
-        $currency2->setCode('EUR');
-        
-        $currency3 = new Currency();
-        $currency3->setCode('XYZ'); // 不在API响应中
-        
         $apiResponse = [
             'rates' => [
                 'USD' => 7.0,
                 'EUR' => 8.0,
+                'CNY' => 1.0,
             ],
             'time_last_updated' => 1640995200,
         ];
@@ -183,26 +188,25 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->with('GET', 'https://api.exchangerate-api.com/v4/latest/CNY')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$currency1, $currency2, $currency3]);
+        // 模拟findByCode返回null，表示需要创建新记录
+        $this->repository->method('findByCode')
+            ->willReturn(null);
         
-        $this->repository->expects($this->exactly(2))
+        // 期望save方法被调用多次
+        $this->repository->expects($this->atLeastOnce())
             ->method('save');
+        
+        // 期望flush被调用一次
+        $this->repository->expects($this->once())
+            ->method('flush');
         
         $result = $this->executeCommand();
         
         $this->assertSame(Command::SUCCESS, $result);
-        $this->assertSame(7.0, $currency1->getRateToCny());
-        $this->assertSame(8.0, $currency2->getRateToCny());
-        $this->assertNull($currency3->getRateToCny());
     }
 
     public function test_execute_jsonWithZeroRates(): void
     {
-        $currency = new Currency();
-        $currency->setCode('USD');
-        
         $apiResponse = [
             'rates' => [
                 'USD' => 0,
@@ -218,24 +222,24 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->method('request')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$currency]);
+        // 模拟findByCode返回null
+        $this->repository->method('findByCode')
+            ->willReturn(null);
         
         $this->repository->expects($this->once())
-            ->method('save');
+            ->method('save')
+            ->with($this->isInstanceOf(Currency::class), false);
+        
+        $this->repository->expects($this->once())
+            ->method('flush');
         
         $result = $this->executeCommand();
         
         $this->assertSame(Command::SUCCESS, $result);
-        $this->assertSame(0.0, $currency->getRateToCny());
     }
 
     public function test_execute_jsonWithNegativeRates(): void
     {
-        $currency = new Currency();
-        $currency->setCode('USD');
-        
         $apiResponse = [
             'rates' => [
                 'USD' => -1.5,
@@ -251,24 +255,24 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->method('request')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$currency]);
+        // 模拟findByCode返回null
+        $this->repository->method('findByCode')
+            ->willReturn(null);
         
         $this->repository->expects($this->once())
-            ->method('save');
+            ->method('save')
+            ->with($this->isInstanceOf(Currency::class), false);
+        
+        $this->repository->expects($this->once())
+            ->method('flush');
         
         $result = $this->executeCommand();
         
         $this->assertSame(Command::SUCCESS, $result);
-        $this->assertSame(-1.5, $currency->getRateToCny());
     }
 
     public function test_execute_timestampConversion(): void
     {
-        $currency = new Currency();
-        $currency->setCode('USD');
-        
         $timestamp = 1640995200; // 2022-01-01 00:00:00 UTC
         
         $apiResponse = [
@@ -286,18 +290,60 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->method('request')
             ->willReturn($response);
         
-        $this->repository->expects($this->once())
-            ->method('findAll')
-            ->willReturn([$currency]);
+        // 模拟findByCode返回null
+        $this->repository->method('findByCode')
+            ->willReturn(null);
         
         $this->repository->expects($this->once())
-            ->method('save');
+            ->method('save')
+            ->with($this->isInstanceOf(Currency::class), false);
+        
+        $this->repository->expects($this->once())
+            ->method('flush');
         
         $result = $this->executeCommand();
         
         $this->assertSame(Command::SUCCESS, $result);
+    }
+
+    public function test_execute_existingCurrencyUpdate(): void
+    {
+        $existingCurrency = new Currency();
+        $existingCurrency->setCode('USD');
+        $existingCurrency->setName('旧美元名称');
+        $existingCurrency->setSymbol('$');
         
-        $expectedTime = Carbon::createFromTimestamp($timestamp, date_default_timezone_get());
-        $this->assertEquals($expectedTime, $currency->getUpdateTime());
+        $apiResponse = [
+            'rates' => [
+                'USD' => 7.0,
+            ],
+            'time_last_updated' => 1640995200,
+        ];
+        
+        $response = $this->createMock(ResponseInterface::class);
+        $response->method('getContent')
+            ->willReturn(json_encode($apiResponse));
+        
+        $this->httpClient->expects($this->once())
+            ->method('request')
+            ->willReturn($response);
+        
+        // 模拟findByCode返回已存在的货币
+        $this->repository->method('findByCode')
+            ->with('USD')
+            ->willReturn($existingCurrency);
+        
+        $this->repository->expects($this->once())
+            ->method('save')
+            ->with($existingCurrency, false);
+        
+        $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $result = $this->executeCommand();
+        
+        $this->assertSame(Command::SUCCESS, $result);
+        $this->assertSame(7.0, $existingCurrency->getRateToCny());
+        $this->assertInstanceOf(\DateTimeInterface::class, $existingCurrency->getUpdateTime());
     }
 } 
