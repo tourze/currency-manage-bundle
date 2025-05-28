@@ -72,7 +72,7 @@ class UpdateCurrencyRateCommand extends Command
 
             // 检查是否已存在当日的历史记录
             $existingHistory = $this->historyRepository->findByCurrencyAndDate($currencyCode, $rateDate);
-            
+
             if (!$existingHistory) {
                 // 创建历史汇率记录
                 $history = new CurrencyRateHistory();
@@ -91,7 +91,7 @@ class UpdateCurrencyRateCommand extends Command
                 $existingHistory->setCurrencyName($currencyName);
                 $existingHistory->setCurrencySymbol($currencyCode);
                 $existingHistory->setFlag($flagCode);
-                
+
                 $this->historyRepository->save($existingHistory, false);
             }
         }

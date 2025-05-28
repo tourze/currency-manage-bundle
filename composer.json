@@ -10,7 +10,7 @@
     "doctrine/data-fixtures": "^2.0",
     "doctrine/dbal": "^4.0",
     "doctrine/doctrine-bundle": "^2.13",
-    "doctrine/doctrine-fixtures-bundle": "^3.6",
+    "doctrine/doctrine-fixtures-bundle": "^4.0",
     "doctrine/orm": "^3.0",
     "doctrine/persistence": "^3.1 || ^4",
     "easycorp/easyadmin-bundle": "^4",
@@ -31,8 +31,7 @@
     "tourze/doctrine-timestamp-bundle": "0.0.*",
     "tourze/easy-admin-menu-bundle": "0.1.*",
     "tourze/gb-t-12406": "0.0.*",
-    "tourze/gb-t-2659": "0.1.*",
-    "tourze/routing-auto-loader-bundle": "0.1.*",
+    "tourze/gb-t-2659": "0.0.*",
     "tourze/symfony-cron-job-bundle": "0.1.*",
     "tourze/symfony-routing-auto-loader-bundle": "0.0.*",
     "yiisoft/json": "^1.0"
