@@ -11,6 +11,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 use Tourze\CurrencyManageBundle\Command\UpdateCurrencyRateCommand;
 use Tourze\CurrencyManageBundle\Entity\Currency;
+use Tourze\CurrencyManageBundle\Repository\CurrencyRateHistoryRepository;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRepository;
 use Tourze\CurrencyManageBundle\Service\FlagService;
 
@@ -18,6 +19,7 @@ class UpdateCurrencyRateCommandTest extends TestCase
 {
     private UpdateCurrencyRateCommand $command;
     private CurrencyRepository&MockObject $repository;
+    private CurrencyRateHistoryRepository&MockObject $historyRepository;
     private HttpClientInterface&MockObject $httpClient;
     private FlagService&MockObject $flagService;
     private InputInterface&MockObject $input;
@@ -26,15 +28,17 @@ class UpdateCurrencyRateCommandTest extends TestCase
     protected function setUp(): void
     {
         $this->repository = $this->createMock(CurrencyRepository::class);
+        $this->historyRepository = $this->createMock(CurrencyRateHistoryRepository::class);
         $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->flagService = $this->createMock(FlagService::class);
         $this->input = $this->createMock(InputInterface::class);
         $this->output = $this->createMock(OutputInterface::class);
         
-        $this->flagService->method('getFlagCodeFromCurrency')->willReturn('us');
+        $this->flagService->method('getFlagCodeFromCurrencyViaCountry')->willReturn('us');
         
         $this->command = new UpdateCurrencyRateCommand(
             $this->repository,
+            $this->historyRepository,
             $this->httpClient,
             $this->flagService
         );
@@ -93,11 +97,20 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->method('flush');
         
         // 期望输出成功信息
-        $this->output->expects($this->once())
+        $outputMessages = [];
+        $this->output->expects($this->exactly(2))
             ->method('writeln')
-            ->with($this->stringContains('成功更新了'));
+            ->willReturnCallback(function ($message) use (&$outputMessages) {
+                $outputMessages[] = $message;
+                return null;
+            });
         
         $result = $this->executeCommand();
+        
+        // 验证输出消息
+        $this->assertCount(2, $outputMessages);
+        $this->assertStringContainsString('成功更新了', $outputMessages[0]);
+        $this->assertStringContainsString('成功记录了', $outputMessages[1]);
         
         $this->assertSame(Command::SUCCESS, $result);
     }
@@ -124,16 +137,31 @@ class UpdateCurrencyRateCommandTest extends TestCase
         $this->repository->expects($this->never())
             ->method('save');
         
+        $this->historyRepository->expects($this->never())
+            ->method('save');
+        
         // 不期望flush被调用
         $this->repository->expects($this->never())
             ->method('flush');
         
+        $this->historyRepository->expects($this->never())
+            ->method('flush');
+        
         // 期望输出0个更新
-        $this->output->expects($this->once())
+        $outputMessages = [];
+        $this->output->expects($this->exactly(2))
             ->method('writeln')
-            ->with('成功更新了 0 个货币的汇率信息');
+            ->willReturnCallback(function ($message) use (&$outputMessages) {
+                $outputMessages[] = $message;
+                return null;
+            });
         
         $result = $this->executeCommand();
+        
+        // 验证输出消息
+        $this->assertCount(2, $outputMessages);
+        $this->assertEquals('成功更新了 0 个货币的汇率信息', $outputMessages[0]);
+        $this->assertEquals('成功记录了 0 条新的历史汇率数据', $outputMessages[1]);
         
         $this->assertSame(Command::SUCCESS, $result);
     }
@@ -161,12 +189,22 @@ class UpdateCurrencyRateCommandTest extends TestCase
         $this->repository->method('findByCode')
             ->willReturn(null);
         
+        // 模拟历史记录查询返回null
+        $this->historyRepository->method('findByCurrencyAndDate')
+            ->willReturn(null);
+        
         // 期望save方法被调用（对于API中存在的货币）
         $this->repository->expects($this->atLeastOnce())
             ->method('save');
         
+        $this->historyRepository->expects($this->atLeastOnce())
+            ->method('save');
+        
         // 期望flush被调用
         $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $this->historyRepository->expects($this->once())
             ->method('flush');
         
         $result = $this->executeCommand();
@@ -198,12 +236,22 @@ class UpdateCurrencyRateCommandTest extends TestCase
         $this->repository->method('findByCode')
             ->willReturn(null);
         
+        // 模拟历史记录查询返回null
+        $this->historyRepository->method('findByCurrencyAndDate')
+            ->willReturn(null);
+        
         // 期望save方法被调用多次
         $this->repository->expects($this->atLeastOnce())
             ->method('save');
         
+        $this->historyRepository->expects($this->atLeastOnce())
+            ->method('save');
+        
         // 期望flush被调用一次
         $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $this->historyRepository->expects($this->once())
             ->method('flush');
         
         $result = $this->executeCommand();
@@ -232,11 +280,21 @@ class UpdateCurrencyRateCommandTest extends TestCase
         $this->repository->method('findByCode')
             ->willReturn(null);
         
+        // 模拟历史记录查询返回null
+        $this->historyRepository->method('findByCurrencyAndDate')
+            ->willReturn(null);
+        
         $this->repository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Currency::class), false);
         
+        $this->historyRepository->expects($this->once())
+            ->method('save');
+        
         $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $this->historyRepository->expects($this->once())
             ->method('flush');
         
         $result = $this->executeCommand();
@@ -265,11 +323,21 @@ class UpdateCurrencyRateCommandTest extends TestCase
         $this->repository->method('findByCode')
             ->willReturn(null);
         
+        // 模拟历史记录查询返回null
+        $this->historyRepository->method('findByCurrencyAndDate')
+            ->willReturn(null);
+        
         $this->repository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Currency::class), false);
         
+        $this->historyRepository->expects($this->once())
+            ->method('save');
+        
         $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $this->historyRepository->expects($this->once())
             ->method('flush');
         
         $result = $this->executeCommand();
@@ -300,11 +368,21 @@ class UpdateCurrencyRateCommandTest extends TestCase
         $this->repository->method('findByCode')
             ->willReturn(null);
         
+        // 模拟历史记录查询返回null
+        $this->historyRepository->method('findByCurrencyAndDate')
+            ->willReturn(null);
+        
         $this->repository->expects($this->once())
             ->method('save')
             ->with($this->isInstanceOf(Currency::class), false);
         
+        $this->historyRepository->expects($this->once())
+            ->method('save');
+        
         $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $this->historyRepository->expects($this->once())
             ->method('flush');
         
         $result = $this->executeCommand();
@@ -314,11 +392,6 @@ class UpdateCurrencyRateCommandTest extends TestCase
 
     public function test_execute_existingCurrencyUpdate(): void
     {
-        $existingCurrency = new Currency();
-        $existingCurrency->setCode('USD');
-        $existingCurrency->setName('旧美元名称');
-        $existingCurrency->setSymbol('$');
-        
         $apiResponse = [
             'rates' => [
                 'USD' => 7.0,
@@ -335,15 +408,31 @@ class UpdateCurrencyRateCommandTest extends TestCase
             ->willReturn($response);
         
         // 模拟findByCode返回已存在的货币
+        $existingCurrency = new Currency();
+        $existingCurrency->setCode('USD');
+        $existingCurrency->setName('美元');
+        $existingCurrency->setSymbol('$');
+        $existingCurrency->setRateToCny(6.5);
+        
         $this->repository->method('findByCode')
             ->with('USD')
             ->willReturn($existingCurrency);
         
-        $this->repository->expects($this->once())
-            ->method('save')
-            ->with($existingCurrency, false);
+        // 模拟历史记录查询返回null
+        $this->historyRepository->method('findByCurrencyAndDate')
+            ->willReturn(null);
         
         $this->repository->expects($this->once())
+            ->method('save')
+            ->with($this->isInstanceOf(Currency::class), false);
+        
+        $this->historyRepository->expects($this->once())
+            ->method('save');
+        
+        $this->repository->expects($this->once())
+            ->method('flush');
+        
+        $this->historyRepository->expects($this->once())
             ->method('flush');
         
         $result = $this->executeCommand();

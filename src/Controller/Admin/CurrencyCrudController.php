@@ -7,13 +7,16 @@ use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Filters;
 use EasyCorp\Bundle\EasyAdminBundle\Controller\AbstractCrudController;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\DateTimeField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\IdField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\NumberField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
+use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
+use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Entity\Currency;
 
 /**
@@ -58,8 +61,15 @@ class CurrencyCrudController extends AbstractCrudController
             ->setRequired(true)
             ->setHelp('货币符号标识，如：¥、$、€等');
 
-        yield TextField::new('flag', '国旗代码')
-            ->setHelp('国旗代码，如：cn、us、eu等，用于显示对应国旗图标');
+        yield AssociationField::new('country', '所属国家')
+            ->setHelp('该货币所属的国家或地区')
+            ->autocomplete()
+            ->formatValue(function ($value, $entity) {
+                if ($value instanceof Country) {
+                    return $value->getName() . ' [' . $value->getCode() . ']';
+                }
+                return $value;
+            });
 
         yield NumberField::new('rateToCny', '对人民币汇率')
             ->setNumDecimals(6)
@@ -83,7 +93,7 @@ class CurrencyCrudController extends AbstractCrudController
             ->add(TextFilter::new('name', '货币名称'))
             ->add(TextFilter::new('code', '货币代码'))
             ->add(TextFilter::new('symbol', '货币符号'))
-            ->add(TextFilter::new('flag', '国旗代码'))
+            ->add(EntityFilter::new('country', '所属国家'))
             ->add(NumericFilter::new('rateToCny', '对人民币汇率'))
             ->add(DateTimeFilter::new('updateTime', '汇率更新时间'));
     }

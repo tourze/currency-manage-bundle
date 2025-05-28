@@ -26,8 +26,9 @@ class Currency implements \Stringable
     #[ORM\Column(length: 32, options: ['comment' => '货币代码'])]
     private ?string $code = '';
 
-    #[ORM\Column(length: 8, nullable: true, options: ['comment' => '国旗代码'])]
-    private ?string $flag = null;
+    #[ORM\ManyToOne(targetEntity: Country::class, fetch: 'EXTRA_LAZY', inversedBy: 'currencies')]
+    #[ORM\JoinColumn(name: 'country_id', referencedColumnName: 'id', nullable: true)]
+    private ?Country $country = null;
 
     #[ORM\Column(name: 'rateToCny', nullable: true, options: ['comment' => '对人民币汇率'])]
     private ?float $rateToCny = null;
@@ -78,18 +79,6 @@ class Currency implements \Stringable
         return $this;
     }
 
-    public function getFlag(): ?string
-    {
-        return $this->flag;
-    }
-
-    public function setFlag(?string $flag): static
-    {
-        $this->flag = $flag;
-
-        return $this;
-    }
-
     public function getRateToCny(): ?float
     {
         return $this->rateToCny;
@@ -112,6 +101,18 @@ class Currency implements \Stringable
     public function getUpdateTime(): ?\DateTimeInterface
     {
         return $this->updateTime;
+    }
+
+    public function getCountry(): ?Country
+    {
+        return $this->country;
+    }
+
+    public function setCountry(?Country $country): static
+    {
+        $this->country = $country;
+
+        return $this;
     }
 
     public function __toString(): string

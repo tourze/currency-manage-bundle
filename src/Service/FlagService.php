@@ -3,12 +3,19 @@
 namespace Tourze\CurrencyManageBundle\Service;
 
 use Composer\InstalledVersions;
+use Tourze\CurrencyManageBundle\Entity\Country;
+use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 
 /**
  * 国旗服务
  */
 class FlagService
 {
+    public function __construct(
+        private readonly CountryRepository $countryRepository,
+    ) {
+    }
+
     /**
      * 获取国旗文件路径
      */
@@ -23,6 +30,53 @@ class FlagService
         $flagFile = $flagIconsPath . '/flags/' . $ratio . '/' . strtolower($flagCode) . '.svg';
 
         return file_exists($flagFile) ? $flagFile : null;
+    }
+
+    /**
+     * 根据国家实体获取国旗文件路径
+     */
+    public function getFlagPathFromCountry(Country $country, string $ratio = '4x3'): ?string
+    {
+        $flagCode = $country->getFlagCode();
+        if (!$flagCode) {
+            return null;
+        }
+
+        return $this->getFlagPath($flagCode, $ratio);
+    }
+
+    /**
+     * 根据货币代码获取国旗文件路径（通过国家关联）
+     */
+    public function getFlagPathFromCurrency(string $currencyCode, string $ratio = '4x3'): ?string
+    {
+        // 通过 Country 实体获取国旗代码
+        $flagCode = $this->getFlagCodeFromCurrencyViaCountry($currencyCode);
+        if ($flagCode) {
+            return $this->getFlagPath($flagCode, $ratio);
+        }
+
+        return null;
+    }
+
+    /**
+     * 通过 Country 实体获取货币对应的国旗代码
+     */
+    public function getFlagCodeFromCurrencyViaCountry(string $currencyCode): ?string
+    {
+        // 这里需要通过货币代码查找对应的国家
+        // 由于一个货币可能对应多个国家，我们取第一个有效的
+        $countries = $this->countryRepository->findCountriesWithCurrencies();
+        
+        foreach ($countries as $country) {
+            foreach ($country->getCurrencies() as $currency) {
+                if ($currency->getCode() === $currencyCode) {
+                    return $country->getFlagCode();
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -60,228 +114,5 @@ class FlagService
         sort($flags);
 
         return $flags;
-    }
-
-    /**
-     * 根据货币代码推断国旗代码
-     */
-    public function getFlagCodeFromCurrency(string $currencyCode): ?string
-    {
-        // 货币代码到国旗代码的映射
-        $currencyToFlag = [
-            // 主要货币
-            'CNY' => 'cn', // 人民币 -> 中国
-            'USD' => 'us', // 美元 -> 美国
-            'EUR' => 'eu', // 欧元 -> 欧盟
-            'JPY' => 'jp', // 日元 -> 日本
-            'GBP' => 'gb', // 英镑 -> 英国
-            'AUD' => 'au', // 澳元 -> 澳大利亚
-            'CAD' => 'ca', // 加元 -> 加拿大
-            'CHF' => 'ch', // 瑞士法郎 -> 瑞士
-            'HKD' => 'hk', // 港币 -> 香港
-            'SGD' => 'sg', // 新加坡元 -> 新加坡
-            'TWD' => 'tw', // 新台币 -> 台湾
-            'NZD' => 'nz', // 新西兰元 -> 新西兰
-
-            // 欧洲货币
-            'SEK' => 'se', // 瑞典克朗 -> 瑞典
-            'NOK' => 'no', // 挪威克朗 -> 挪威
-            'DKK' => 'dk', // 丹麦克朗 -> 丹麦
-            'PLN' => 'pl', // 波兰兹罗提 -> 波兰
-            'CZK' => 'cz', // 捷克克朗 -> 捷克
-            'HUF' => 'hu', // 匈牙利福林 -> 匈牙利
-            'RON' => 'ro', // 罗马尼亚列伊 -> 罗马尼亚
-            'BGN' => 'bg', // 保加利亚列弗 -> 保加利亚
-            'HRK' => 'hr', // 克罗地亚库纳 -> 克罗地亚
-            'ISK' => 'is', // 冰岛克朗 -> 冰岛
-            'RUB' => 'ru', // 俄罗斯卢布 -> 俄罗斯
-            'UAH' => 'ua', // 乌克兰格里夫纳 -> 乌克兰
-            'BYN' => 'by', // 白俄罗斯卢布 -> 白俄罗斯
-            'MDL' => 'md', // 摩尔多瓦列伊 -> 摩尔多瓦
-            'GEL' => 'ge', // 格鲁吉亚拉里 -> 格鲁吉亚
-            'AMD' => 'am', // 亚美尼亚德拉姆 -> 亚美尼亚
-            'AZN' => 'az', // 阿塞拜疆马纳特 -> 阿塞拜疆
-            'BAM' => 'ba', // 波斯尼亚-黑塞哥维那可兑换马克 -> 波黑
-            'MKD' => 'mk', // 马其顿第纳尔 -> 北马其顿
-            'RSD' => 'rs', // 塞尔维亚第纳尔 -> 塞尔维亚
-            'ALL' => 'al', // 阿尔巴尼亚列克 -> 阿尔巴尼亚
-            'LTL' => 'lt', // 立陶宛立特 -> 立陶宛
-            'LVL' => 'lv', // 拉脱维亚拉特 -> 拉脱维亚
-            'EEK' => 'ee', // 爱沙尼亚克朗 -> 爱沙尼亚
-            
-            // 亚洲货币
-            'INR' => 'in', // 印度卢比 -> 印度
-            'IDR' => 'id', // 印尼盾 -> 印度尼西亚
-            'THB' => 'th', // 泰铢 -> 泰国
-            'MYR' => 'my', // 马来西亚林吉特 -> 马来西亚
-            'PHP' => 'ph', // 菲律宾比索 -> 菲律宾
-            'VND' => 'vn', // 越南盾 -> 越南
-            'KRW' => 'kr', // 韩元 -> 韩国
-            'KPW' => 'kp', // 朝鲜元 -> 朝鲜
-            'MNT' => 'mn', // 蒙古图格里克 -> 蒙古
-            'KZT' => 'kz', // 哈萨克斯坦坚戈 -> 哈萨克斯坦
-            'UZS' => 'uz', // 乌兹别克斯坦苏姆 -> 乌兹别克斯坦
-            'KGS' => 'kg', // 吉尔吉斯斯坦索姆 -> 吉尔吉斯斯坦
-            'TJS' => 'tj', // 塔吉克斯坦索莫尼 -> 塔吉克斯坦
-            'TMT' => 'tm', // 土库曼斯坦马纳特 -> 土库曼斯坦
-            'AFN' => 'af', // 阿富汗尼 -> 阿富汗
-            'PKR' => 'pk', // 巴基斯坦卢比 -> 巴基斯坦
-            'BDT' => 'bd', // 孟加拉塔卡 -> 孟加拉国
-            'LKR' => 'lk', // 斯里兰卡卢比 -> 斯里兰卡
-            'NPR' => 'np', // 尼泊尔卢比 -> 尼泊尔
-            'BTN' => 'bt', // 不丹努尔特鲁姆 -> 不丹
-            'MVR' => 'mv', // 马尔代夫拉菲亚 -> 马尔代夫
-            'LAK' => 'la', // 老挝基普 -> 老挝
-            'KHR' => 'kh', // 柬埔寨瑞尔 -> 柬埔寨
-            'MMK' => 'mm', // 缅甸元 -> 缅甸
-            'BND' => 'bn', // 文莱元 -> 文莱
-            'FJD' => 'fj', // 斐济元 -> 斐济
-            'TOP' => 'to', // 汤加潘加 -> 汤加
-            'WST' => 'ws', // 萨摩亚塔拉 -> 萨摩亚
-            'VUV' => 'vu', // 瓦努阿图瓦图 -> 瓦努阿图
-            'PGK' => 'pg', // 巴布亚新几内亚基那 -> 巴布亚新几内亚
-            'SBD' => 'sb', // 所罗门群岛元 -> 所罗门群岛
-            
-            // 中东货币
-            'SAR' => 'sa', // 沙特里亚尔 -> 沙特阿拉伯
-            'AED' => 'ae', // 阿联酋迪拉姆 -> 阿联酋
-            'QAR' => 'qa', // 卡塔尔里亚尔 -> 卡塔尔
-            'KWD' => 'kw', // 科威特第纳尔 -> 科威特
-            'BHD' => 'bh', // 巴林第纳尔 -> 巴林
-            'OMR' => 'om', // 阿曼里亚尔 -> 阿曼
-            'JOD' => 'jo', // 约旦第纳尔 -> 约旦
-            'ILS' => 'il', // 以色列新谢克尔 -> 以色列
-            'LBP' => 'lb', // 黎巴嫩镑 -> 黎巴嫩
-            'SYP' => 'sy', // 叙利亚镑 -> 叙利亚
-            'IQD' => 'iq', // 伊拉克第纳尔 -> 伊拉克
-            'IRR' => 'ir', // 伊朗里亚尔 -> 伊朗
-            'TRY' => 'tr', // 土耳其里拉 -> 土耳其
-            'CYP' => 'cy', // 塞浦路斯镑 -> 塞浦路斯
-            
-            // 非洲货币
-            'ZAR' => 'za', // 南非兰特 -> 南非
-            'EGP' => 'eg', // 埃及镑 -> 埃及
-            'NGN' => 'ng', // 尼日利亚奈拉 -> 尼日利亚
-            'KES' => 'ke', // 肯尼亚先令 -> 肯尼亚
-            'UGX' => 'ug', // 乌干达先令 -> 乌干达
-            'TZS' => 'tz', // 坦桑尼亚先令 -> 坦桑尼亚
-            'RWF' => 'rw', // 卢旺达法郎 -> 卢旺达
-            'ETB' => 'et', // 埃塞俄比亚比尔 -> 埃塞俄比亚
-            'GHS' => 'gh', // 加纳塞地 -> 加纳
-            'XOF' => 'sn', // 西非法郎 -> 塞内加尔（代表西非经济货币联盟）
-            'XAF' => 'cm', // 中非法郎 -> 喀麦隆（代表中非经济货币联盟）
-            'MAD' => 'ma', // 摩洛哥迪拉姆 -> 摩洛哥
-            'TND' => 'tn', // 突尼斯第纳尔 -> 突尼斯
-            'DZD' => 'dz', // 阿尔及利亚第纳尔 -> 阿尔及利亚
-            'LYD' => 'ly', // 利比亚第纳尔 -> 利比亚
-            'SDG' => 'sd', // 苏丹镑 -> 苏丹
-            'SSP' => 'ss', // 南苏丹镑 -> 南苏丹
-            'ERN' => 'er', // 厄立特里亚纳克法 -> 厄立特里亚
-            'DJF' => 'dj', // 吉布提法郎 -> 吉布提
-            'SOS' => 'so', // 索马里先令 -> 索马里
-            'MUR' => 'mu', // 毛里求斯卢比 -> 毛里求斯
-            'SCR' => 'sc', // 塞舌尔卢比 -> 塞舌尔
-            'MGA' => 'mg', // 马达加斯加阿里亚里 -> 马达加斯加
-            'KMF' => 'km', // 科摩罗法郎 -> 科摩罗
-            'MZN' => 'mz', // 莫桑比克美提卡 -> 莫桑比克
-            'ZMW' => 'zm', // 赞比亚克瓦查 -> 赞比亚
-            'ZWL' => 'zw', // 津巴布韦元 -> 津巴布韦
-            'BWP' => 'bw', // 博茨瓦纳普拉 -> 博茨瓦纳
-            'NAD' => 'na', // 纳米比亚元 -> 纳米比亚
-            'SZL' => 'sz', // 斯威士兰里兰吉尼 -> 斯威士兰
-            'LSL' => 'ls', // 莱索托洛蒂 -> 莱索托
-            'AOA' => 'ao', // 安哥拉宽扎 -> 安哥拉
-            'CDF' => 'cd', // 刚果法郎 -> 刚果民主共和国
-            'XPF' => 'pf', // 太平洋法郎 -> 法属波利尼西亚
-            'CVE' => 'cv', // 佛得角埃斯库多 -> 佛得角
-            'GMD' => 'gm', // 冈比亚达拉西 -> 冈比亚
-            'GNF' => 'gn', // 几内亚法郎 -> 几内亚
-            'GWP' => 'gw', // 几内亚比绍比索 -> 几内亚比绍
-            'LRD' => 'lr', // 利比里亚元 -> 利比里亚
-            'SLL' => 'sl', // 塞拉利昂利昂 -> 塞拉利昂
-            'MRO' => 'mr', // 毛里塔尼亚乌吉亚 -> 毛里塔尼亚
-            'MLF' => 'ml', // 马里法郎 -> 马里
-            'BIF' => 'bi', // 布隆迪法郎 -> 布隆迪
-            'CFA' => 'cf', // 中非共和国法郎 -> 中非共和国
-            'TCD' => 'td', // 乍得法郎 -> 乍得
-            'NER' => 'ne', // 尼日尔法郎 -> 尼日尔
-            'BFA' => 'bf', // 布基纳法索法郎 -> 布基纳法索
-            'CIV' => 'ci', // 科特迪瓦法郎 -> 科特迪瓦
-            'SEN' => 'sn', // 塞内加尔法郎 -> 塞内加尔
-            'BEN' => 'bj', // 贝宁法郎 -> 贝宁
-            'TGO' => 'tg', // 多哥法郎 -> 多哥
-            'GHA' => 'gh', // 加纳法郎 -> 加纳
-            'STD' => 'st', // 圣多美和普林西比多布拉 -> 圣多美和普林西比
-            'GQE' => 'gq', // 赤道几内亚埃奎勒 -> 赤道几内亚
-            'GAB' => 'ga', // 加蓬法郎 -> 加蓬
-            'COG' => 'cg', // 刚果法郎 -> 刚果共和国
-            
-            // 美洲货币
-            'MXN' => 'mx', // 墨西哥比索 -> 墨西哥
-            'BRL' => 'br', // 巴西雷亚尔 -> 巴西
-            'ARS' => 'ar', // 阿根廷比索 -> 阿根廷
-            'CLP' => 'cl', // 智利比索 -> 智利
-            'COP' => 'co', // 哥伦比亚比索 -> 哥伦比亚
-            'PEN' => 'pe', // 秘鲁索尔 -> 秘鲁
-            'VEF' => 've', // 委内瑞拉玻利瓦尔 -> 委内瑞拉
-            'BOB' => 'bo', // 玻利维亚诺 -> 玻利维亚
-            'UYU' => 'uy', // 乌拉圭比索 -> 乌拉圭
-            'PYG' => 'py', // 巴拉圭瓜拉尼 -> 巴拉圭
-            'GYD' => 'gy', // 圭亚那元 -> 圭亚那
-            'SRD' => 'sr', // 苏里南元 -> 苏里南
-            'CRC' => 'cr', // 哥斯达黎加科朗 -> 哥斯达黎加
-            'GTQ' => 'gt', // 危地马拉格查尔 -> 危地马拉
-            'HNL' => 'hn', // 洪都拉斯伦皮拉 -> 洪都拉斯
-            'NIO' => 'ni', // 尼加拉瓜科多巴 -> 尼加拉瓜
-            'SVC' => 'sv', // 萨尔瓦多科朗 -> 萨尔瓦多
-            'PAB' => 'pa', // 巴拿马巴波亚 -> 巴拿马
-            'BZD' => 'bz', // 伯利兹元 -> 伯利兹
-            'JMD' => 'jm', // 牙买加元 -> 牙买加
-            'HTG' => 'ht', // 海地古德 -> 海地
-            'DOP' => 'do', // 多米尼加比索 -> 多米尼加
-            'CUP' => 'cu', // 古巴比索 -> 古巴
-            'CUC' => 'cu', // 古巴可兑换比索 -> 古巴
-            'TTD' => 'tt', // 特立尼达和多巴哥元 -> 特立尼达和多巴哥
-            'BBD' => 'bb', // 巴巴多斯元 -> 巴巴多斯
-            'XCD' => 'ag', // 东加勒比元 -> 安提瓜和巴布达（代表东加勒比货币联盟）
-            'AWG' => 'aw', // 阿鲁巴弗罗林 -> 阿鲁巴
-            'ANG' => 'cw', // 荷属安的列斯盾 -> 库拉索
-            'BMD' => 'bm', // 百慕大元 -> 百慕大
-            'KYD' => 'ky', // 开曼群岛元 -> 开曼群岛
-            'BSD' => 'bs', // 巴哈马元 -> 巴哈马
-            'FKP' => 'fk', // 福克兰群岛镑 -> 福克兰群岛
-            'GIP' => 'gi', // 直布罗陀镑 -> 直布罗陀
-            'SHP' => 'sh', // 圣赫勒拿群岛磅 -> 圣赫勒拿
-            
-            // 历史货币（已废弃但可能仍在数据中）
-            'DEM' => 'de', // 德国马克 -> 德国
-            'FRF' => 'fr', // 法国法郎 -> 法国
-            'ITL' => 'it', // 意大利里拉 -> 意大利
-            'ESP' => 'es', // 西班牙比塞塔 -> 西班牙
-            'NLG' => 'nl', // 荷兰盾 -> 荷兰
-            'BEF' => 'be', // 比利时法郎 -> 比利时
-            'ATS' => 'at', // 奥地利先令 -> 奥地利
-            'PTE' => 'pt', // 葡萄牙埃斯库多 -> 葡萄牙
-            'FIM' => 'fi', // 芬兰马克 -> 芬兰
-            'IEP' => 'ie', // 爱尔兰镑 -> 爱尔兰
-            'GRD' => 'gr', // 希腊德拉克马 -> 希腊
-            'LUF' => 'lu', // 卢森堡法郎 -> 卢森堡
-            'SKK' => 'sk', // 斯洛伐克克朗 -> 斯洛伐克
-            'SIT' => 'si', // 斯洛文尼亚托拉尔 -> 斯洛文尼亚
-            'MTL' => 'mt', // 马耳他里拉 -> 马耳他
-            'CYP' => 'cy', // 塞浦路斯镑 -> 塞浦路斯
-            'EEK' => 'ee', // 爱沙尼亚克朗 -> 爱沙尼亚
-            'LVL' => 'lv', // 拉脱维亚拉特 -> 拉脱维亚
-            'LTL' => 'lt', // 立陶宛立特 -> 立陶宛
-
-            // 特殊货币单位
-            'XDR' => 'un', // 特别提款权 -> 联合国
-            'XAU' => null, // 黄金 -> 无对应国旗
-            'XAG' => null, // 银 -> 无对应国旗
-            'XPT' => null, // 铂金 -> 无对应国旗
-            'XPD' => null, // 钯金 -> 无对应国旗
-        ];
-
-        return $currencyToFlag[$currencyCode] ?? null;
     }
 }

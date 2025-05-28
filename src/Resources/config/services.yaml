@@ -8,6 +8,8 @@ services:
     resource: '../../Command/'
   Tourze\CurrencyManageBundle\Controller\:
     resource: '../../Controller/'
+  Tourze\CurrencyManageBundle\DataFixtures\:
+    resource: '../../DataFixtures/'
   Tourze\CurrencyManageBundle\Repository\:
     resource: '../../Repository/'
   Tourze\CurrencyManageBundle\Service\:
