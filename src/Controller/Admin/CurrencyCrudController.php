@@ -2,6 +2,7 @@
 
 namespace Tourze\CurrencyManageBundle\Controller\Admin;
 
+use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Action;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Actions;
 use EasyCorp\Bundle\EasyAdminBundle\Config\Crud;
@@ -22,6 +23,7 @@ use Tourze\CurrencyManageBundle\Entity\Currency;
 /**
  * 货币管理控制器
  */
+#[AdminCrud(routePath: '/currency/currency', routeName: 'currency_currency')]
 class CurrencyCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
