@@ -38,7 +38,7 @@ class UpdateCurrencyRateCommand extends Command
         $updatedCount = 0;
         $historyCount = 0;
         $updateTime = Carbon::createFromTimestamp($json['time_last_updated'], date_default_timezone_get());
-        $rateDate = $updateTime->toDateTimeImmutable()->setTime(0, 0, 0);
+        $rateDate = $updateTime->clone()->setTime(0, 0, 0);
 
         // 遍历所有货币枚举值
         foreach (Currency::cases() as $currencyEnum) {
