@@ -36,6 +36,13 @@ class IntegrationTestKernel extends Kernel
             'php_errors' => [
                 'log' => true,
             ],
+            'validation' => [
+                'email_validation_mode' => 'html5',
+            ],
+            'uid' => [
+                'default_uuid_version' => 7,
+                'time_based_uuid_version' => 7,
+            ],
         ]);
 
         $container->loadFromExtension('doctrine', [
@@ -45,6 +52,9 @@ class IntegrationTestKernel extends Kernel
             ],
             'orm' => [
                 'auto_generate_proxy_classes' => true,
+                'controller_resolver' => [
+                    'auto_mapping' => false,
+                ],
                 'auto_mapping' => true,
                 'mappings' => [
                     'CurrencyManageBundle' => [
