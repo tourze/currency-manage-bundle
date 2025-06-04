@@ -10,7 +10,7 @@ use Tourze\CurrencyManageBundle\Entity\Currency;
 use Tourze\CurrencyManageBundle\Service\FlagService;
 
 /**
- * 货币与国家关联数据初始化
+ * 货币与国家关联数据修复
  */
 class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -24,38 +24,95 @@ class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterfa
         // 获取所有现有的货币
         $currencies = $manager->getRepository(Currency::class)->findAll();
 
+        $associatedCount = 0;
+
         foreach ($currencies as $currency) {
             $currencyCode = $currency->getCode();
-            if (!$currencyCode) {
+            if (!$currencyCode || $currency->getCountry()) {
+                // 跳过已有国家关联的货币
                 continue;
             }
 
             // 使用 FlagService 获取对应的国旗代码
             $flagCode = $this->flagService->getFlagCodeFromCurrencyViaCountry($currencyCode);
             if (!$flagCode) {
-                continue;
+                // 尝试根据货币代码映射常见国家
+                $flagCode = $this->getCountryCodeByCurrency($currencyCode);
             }
 
-            // 根据国旗代码查找对应的国家
-            $country = $manager->getRepository(Country::class)
-                ->findOneBy(['flagCode' => $flagCode]);
+            if ($flagCode) {
+                // 根据国旗代码查找对应的国家
+                $country = $manager->getRepository(Country::class)
+                    ->findOneBy(['flagCode' => $flagCode]);
 
-            if ($country && !$currency->getCountry()) {
-                $currency->setCountry($country);
-                $manager->persist($currency);
+                if ($country) {
+                    $currency->setCountry($country);
+                    $manager->persist($currency);
+                    $associatedCount++;
+                }
             }
         }
 
-        $manager->flush();
+        if ($associatedCount > 0) {
+            $manager->flush();
+        }
     }
 
     /**
-     * 依赖于 CountryFixtures
+     * 根据货币代码获取对应的国家代码
+     */
+    private function getCountryCodeByCurrency(string $currencyCode): ?string
+    {
+        $mapping = [
+            'CNY' => 'cn',
+            'USD' => 'us',
+            'EUR' => 'eu',
+            'JPY' => 'jp',
+            'GBP' => 'gb',
+            'HKD' => 'hk',
+            'CAD' => 'ca',
+            'AUD' => 'au',
+            'SGD' => 'sg',
+            'CHF' => 'ch',
+            'TWD' => 'tw',
+            'KRW' => 'kr',
+            'THB' => 'th',
+            'MYR' => 'my',
+            'PHP' => 'ph',
+            'INR' => 'in',
+            'IDR' => 'id',
+            'VND' => 'vn',
+            'RUB' => 'ru',
+            'BRL' => 'br',
+            'MXN' => 'mx',
+            'AED' => 'ae',
+            'SAR' => 'sa',
+            'ZAR' => 'za',
+            'EGP' => 'eg',
+            'TRY' => 'tr',
+            'PLN' => 'pl',
+            'CZK' => 'cz',
+            'HUF' => 'hu',
+            'RON' => 'ro',
+            'BGN' => 'bg',
+            'HRK' => 'hr',
+            'DKK' => 'dk',
+            'SEK' => 'se',
+            'NOK' => 'no',
+            'ISK' => 'is',
+        ];
+
+        return $mapping[$currencyCode] ?? null;
+    }
+
+    /**
+     * 依赖于 CountryFixtures 和 CurrencyFixtures
      */
     public function getDependencies(): array
     {
         return [
             CountryFixtures::class,
+            CurrencyFixtures::class,
         ];
     }
 
@@ -64,6 +121,6 @@ class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterfa
      */
     public function getOrder(): int
     {
-        return 2;
+        return 3;
     }
 }

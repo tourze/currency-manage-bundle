@@ -5,6 +5,7 @@ namespace Tourze\CurrencyManageBundle\Tests\DataFixtures;
 use PHPUnit\Framework\TestCase;
 use Tourze\CurrencyManageBundle\DataFixtures\CountryFixtures;
 use Tourze\CurrencyManageBundle\DataFixtures\CurrencyCountryFixtures;
+use Tourze\CurrencyManageBundle\DataFixtures\CurrencyFixtures;
 use Tourze\CurrencyManageBundle\Service\FlagService;
 
 class CurrencyCountryFixturesTest extends TestCase
@@ -24,6 +25,7 @@ class CurrencyCountryFixturesTest extends TestCase
         
         $this->assertIsArray($dependencies);
         $this->assertContains(CountryFixtures::class, $dependencies);
+        $this->assertContains(CurrencyFixtures::class, $dependencies);
     }
 
     public function test_getOrder_returnsCorrectOrder(): void
@@ -32,7 +34,7 @@ class CurrencyCountryFixturesTest extends TestCase
         $flagService = $this->createMock(FlagService::class);
         $fixtures = new CurrencyCountryFixtures($flagService);
         
-        $this->assertSame(2, $fixtures->getOrder());
+        $this->assertSame(3, $fixtures->getOrder());
     }
 
     public function test_implementsDependentFixtureInterface(): void
@@ -77,5 +79,17 @@ class CurrencyCountryFixturesTest extends TestCase
         $returnType = $reflection->getReturnType();
         $this->assertNotNull($returnType);
         $this->assertSame('void', $returnType->__toString());
+    }
+
+    public function test_getCountryCodeByCurrency_mappingExists(): void
+    {
+        /** @var FlagService $flagService */
+        $flagService = $this->createMock(FlagService::class);
+        $fixtures = new CurrencyCountryFixtures($flagService);
+        
+        // 测试方法存在 (private 方法，通过反射测试)
+        $reflection = new \ReflectionClass($fixtures);
+        $method = $reflection->getMethod('getCountryCodeByCurrency');
+        $this->assertTrue($method->isPrivate());
     }
 } 
