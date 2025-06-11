@@ -28,7 +28,7 @@ class UpdateCurrencyRateCommand extends Command
             $output->writeln("成功记录了 {$result['historyCount']} 条新的历史汇率数据");
 
             return Command::SUCCESS;
-        } catch (\Throwable $e) {
+        } catch  (\Throwable $e) {
             $output->writeln("<error>汇率同步失败：{$e->getMessage()}</error>");
             return Command::FAILURE;
         }
