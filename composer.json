@@ -35,6 +35,7 @@
     "tourze/gb-t-12406": "0.0.*",
     "tourze/gb-t-2659": "0.0.*",
     "tourze/symfony-cron-job-bundle": "0.1.*",
+    "tourze/symfony-integration-test-kernel": "0.0.*",
     "tourze/symfony-routing-auto-loader-bundle": "0.0.*",
     "yiisoft/json": "^1.0"
   },

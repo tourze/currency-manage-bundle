@@ -2,11 +2,15 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Integration;
 
+use Doctrine\Bundle\DoctrineBundle\DoctrineBundle;
+use Doctrine\Bundle\FixturesBundle\DoctrineFixturesBundle;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
+use Tourze\CurrencyManageBundle\CurrencyManageBundle;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 use Tourze\CurrencyManageBundle\Service\FlagService;
 use Tourze\GBT2659\Alpha2Code;
+use Tourze\IntegrationTestKernel\IntegrationTestKernel;
 
 class CurrencyManageIntegrationTest extends KernelTestCase
 {
@@ -15,9 +19,20 @@ class CurrencyManageIntegrationTest extends KernelTestCase
         self::bootKernel();
     }
 
-    protected static function getKernelClass(): string
+    protected static function createKernel(array $options = []): IntegrationTestKernel
     {
-        return IntegrationTestKernel::class;
+        return new IntegrationTestKernel(
+            $options['environment'] ?? 'test',
+            $options['debug'] ?? false,
+            [
+                DoctrineBundle::class => ['all' => true],
+                DoctrineFixturesBundle::class => ['all' => true],
+                CurrencyManageBundle::class => ['all' => true],
+            ],
+            [
+                'Tourze\CurrencyManageBundle\Entity' => dirname(__DIR__, 2) . '/src/Entity',
+            ]
+        );
     }
 
     public function test_countryRepository_serviceExists(): void
