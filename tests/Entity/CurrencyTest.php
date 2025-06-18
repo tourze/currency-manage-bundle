@@ -207,18 +207,15 @@ class CurrencyTest extends TestCase
         $this->assertSame('人民币[¥]', $result);
     }
 
-    public function test_toString_withNullName(): void
+    public function test_toString_withEmptyName(): void
     {
         $reflection = new \ReflectionClass($this->currency);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($this->currency, 1);
         
-        // 直接使用反射设置为null，因为setter不接受null
-        $nameProperty = $reflection->getProperty('name');
-        $nameProperty->setAccessible(true);
-        $nameProperty->setValue($this->currency, null);
-        
+        // 设置为空字符串而不是 null
+        $this->currency->setName('');
         $this->currency->setSymbol('¥');
         
         $result = $this->currency->__toString();

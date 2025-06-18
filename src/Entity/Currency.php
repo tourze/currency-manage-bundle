@@ -7,11 +7,13 @@ use Doctrine\ORM\Mapping as ORM;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRepository;
 use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
 use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 
 #[ORM\Entity(repositoryClass: CurrencyRepository::class)]
 #[ORM\Table(name: 'starhome_currency', options:["comment" => '货币管理'])]
 class Currency implements \Stringable
 {
+    use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -21,10 +23,10 @@ class Currency implements \Stringable
     private ?string $symbol = null;
 
     #[ORM\Column(length: 32, options: ['comment' => '货币名称'])]
-    private ?string $name = '';
+    private string $name = '';
 
     #[ORM\Column(length: 32, options: ['comment' => '货币代码'])]
-    private ?string $code = '';
+    private string $code = '';
 
     #[ORM\ManyToOne(targetEntity: Country::class, fetch: 'EXTRA_LAZY', inversedBy: 'currencies')]
     #[ORM\JoinColumn(name: 'country_id', referencedColumnName: 'id', nullable: true)]
@@ -35,10 +37,7 @@ class Currency implements \Stringable
 
     #[CreateTimeColumn]
     #[UpdateTimeColumn]
-    #[ORM\Column(name: 'rateUpdateDate', type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '汇率更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
-
-    public function getId(): ?int
+    #[ORM\Column(name: 'rateUpdateDate', type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '汇率更新时间'])]public function getId(): ?int
     {
         return $this->id;
     }
@@ -89,21 +88,7 @@ class Currency implements \Stringable
         $this->rateToCny = $rateToCny;
 
         return $this;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $createdAt): self
-    {
-        $this->updateTime = $createdAt;
-
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function getCountry(): ?Country
+    }public function getCountry(): ?Country
     {
         return $this->country;
     }

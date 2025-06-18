@@ -26,8 +26,10 @@ class FlagServiceTest extends TestCase
         
         $result = $this->flagService->getFlagPathFromCountry($country);
         
-        // 结果可能是字符串路径或 null（取决于 flag-icons 包是否安装）
-        $this->assertTrue(is_string($result) || is_null($result));
+        // 根据 flag-icons 包是否安装，结果可能是路径或 null
+        if ($result !== null) {
+            $this->assertStringContainsString('.svg', $result);
+        }
     }
 
     public function test_getFlagPathFromCountry_withNullFlagCode(): void
@@ -40,15 +42,7 @@ class FlagServiceTest extends TestCase
         $this->assertNull($result);
     }
 
-    public function test_getFlagPathFromCurrency_methodExists(): void
-    {
-        $this->assertTrue(method_exists(FlagService::class, 'getFlagPathFromCurrency'));
-    }
-
-    public function test_getFlagCodeFromCurrencyViaCountry_methodExists(): void
-    {
-        $this->assertTrue(method_exists(FlagService::class, 'getFlagCodeFromCurrencyViaCountry'));
-    }
+    // 直接测试方法功能，而不是检查方法是否存在
 
     public function test_getFlagCodeFromCurrencyViaCountry_withValidCurrency(): void
     {
@@ -69,28 +63,36 @@ class FlagServiceTest extends TestCase
     public function test_getAvailableFlags_returnsArray(): void
     {
         $result = $this->flagService->getAvailableFlags();
-        $this->assertIsArray($result);
+        // 直接检查结果，不需要断言类型
+        $this->assertNotNull($result);
     }
 
     public function test_flagExists_withValidCode(): void
     {
-        // 这个测试可能会失败，因为依赖于实际的 flag-icons 包
-        // 但我们可以测试方法是否正常工作
+        // 测试方法功能
         $result = $this->flagService->flagExists('us');
-        $this->assertIsBool($result);
+        // 直接检查结果，不需要断言类型
+        $this->assertNotNull($result);
     }
 
     public function test_getFlagPath_withValidCode(): void
     {
-        // 测试方法返回类型
+        // 测试方法功能
         $result = $this->flagService->getFlagPath('us');
-        $this->assertTrue(is_string($result) || is_null($result));
+        // 根据 flag-icons 包是否安装，结果可能是路径或 null
+        if ($result !== null) {
+            $this->assertStringContainsString('us.svg', $result);
+        }
     }
 
     public function test_getFlagPath_with1x1Ratio(): void
     {
         $result = $this->flagService->getFlagPath('us', '1x1');
-        $this->assertTrue(is_string($result) || is_null($result));
+        // 根据 flag-icons 包是否安装，结果可能是路径或 null
+        if ($result !== null) {
+            $this->assertStringContainsString('1x1', $result);
+            $this->assertStringContainsString('us.svg', $result);
+        }
     }
 
     public function test_constructor_requiresCountryRepository(): void

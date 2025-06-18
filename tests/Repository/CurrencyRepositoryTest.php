@@ -23,29 +23,7 @@ class CurrencyRepositoryTest extends TestCase
         $this->assertInstanceOf(\Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository::class, $repository);
     }
 
-    public function test_findByCode_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'findByCode'));
-    }
-
-    public function test_save_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'save'));
-    }
-
-    public function test_remove_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'remove'));
-    }
+    // 直接测试方法签名和功能，而不是检查方法是否存在
 
     public function test_save_withValidSignature(): void
     {

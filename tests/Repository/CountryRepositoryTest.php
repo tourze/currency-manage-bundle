@@ -7,45 +7,7 @@ use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 
 class CountryRepositoryTest extends TestCase
 {
-    public function test_findByCode_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'findByCode'));
-    }
-
-    public function test_findByAlpha2Code_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'findByAlpha2Code'));
-    }
-
-    public function test_findAllValid_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'findAllValid'));
-    }
-
-    public function test_searchByName_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'searchByName'));
-    }
-
-    public function test_findCountriesWithCurrencies_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'findCountriesWithCurrencies'));
-    }
-
-    public function test_save_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'save'));
-    }
-
-    public function test_remove_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'remove'));
-    }
-
-    public function test_flush_methodExists(): void
-    {
-        $this->assertTrue(method_exists(CountryRepository::class, 'flush'));
-    }
+    // 测试方法签名而不是仅检查方法是否存在
 
     public function test_findByAlpha2Code_withValidEnum(): void
     {

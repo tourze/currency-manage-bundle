@@ -4,12 +4,10 @@ namespace Tourze\CurrencyManageBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
-use Tourze\DoctrineTimestampBundle\Attribute\UpdateTimeColumn;
+use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\GBT2659\Alpha2Code;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]
@@ -17,6 +15,7 @@ use Tourze\GBT2659\Alpha2Code;
 #[ORM\UniqueConstraint(name: 'uniq_country_code', columns: ['code'])]
 class Country implements \Stringable
 {
+    use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
@@ -35,13 +34,6 @@ class Country implements \Stringable
     #[ORM\Column(options: ['comment' => '是否有效', 'default' => true])]
     private bool $valid = true;
 
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '创建时间'])]
-    private ?\DateTimeInterface $createTime = null;
-
-    #[UpdateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '更新时间'])]
-    private ?\DateTimeInterface $updateTime = null;
 
     #[ORM\OneToMany(targetEntity: Currency::class, mappedBy: 'country', fetch: 'EXTRA_LAZY')]
     private Collection $currencies;
@@ -104,29 +96,6 @@ class Country implements \Stringable
         return $this;
     }
 
-    public function getCreateTime(): ?\DateTimeInterface
-    {
-        return $this->createTime;
-    }
-
-    public function setCreateTime(?\DateTimeInterface $createTime): static
-    {
-        $this->createTime = $createTime;
-
-        return $this;
-    }
-
-    public function getUpdateTime(): ?\DateTimeInterface
-    {
-        return $this->updateTime;
-    }
-
-    public function setUpdateTime(?\DateTimeInterface $updateTime): static
-    {
-        $this->updateTime = $updateTime;
-
-        return $this;
-    }
 
     /**
      * @return Collection<int, Currency>
