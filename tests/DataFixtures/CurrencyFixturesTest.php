@@ -15,39 +15,29 @@ class CurrencyFixturesTest extends TestCase
     }
 
     public function test_getDependencies_returnsCorrectDependencies(): void
-    {
-        /** @var CurrencyRateService $currencyRateService */
-        $currencyRateService = $this->createMock(CurrencyRateService::class);
+    {        $currencyRateService = $this->createMock(CurrencyRateService::class);
         $fixtures = new CurrencyFixtures($currencyRateService);
         
         $dependencies = $fixtures->getDependencies();
-        
-        $this->assertIsArray($dependencies);
         $this->assertContains(CountryFixtures::class, $dependencies);
     }
 
     public function test_getOrder_returnsCorrectOrder(): void
-    {
-        /** @var CurrencyRateService $currencyRateService */
-        $currencyRateService = $this->createMock(CurrencyRateService::class);
+    {        $currencyRateService = $this->createMock(CurrencyRateService::class);
         $fixtures = new CurrencyFixtures($currencyRateService);
         
         $this->assertSame(2, $fixtures->getOrder());
     }
 
     public function test_implementsDependentFixtureInterface(): void
-    {
-        /** @var CurrencyRateService $currencyRateService */
-        $currencyRateService = $this->createMock(CurrencyRateService::class);
+    {        $currencyRateService = $this->createMock(CurrencyRateService::class);
         $fixtures = new CurrencyFixtures($currencyRateService);
         
         $this->assertInstanceOf(\Doctrine\Common\DataFixtures\DependentFixtureInterface::class, $fixtures);
     }
 
     public function test_extendsFixture(): void
-    {
-        /** @var CurrencyRateService $currencyRateService */
-        $currencyRateService = $this->createMock(CurrencyRateService::class);
+    {        $currencyRateService = $this->createMock(CurrencyRateService::class);
         $fixtures = new CurrencyFixtures($currencyRateService);
         
         $this->assertInstanceOf(\Doctrine\Bundle\FixturesBundle\Fixture::class, $fixtures);

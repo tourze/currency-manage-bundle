@@ -16,40 +16,30 @@ class CurrencyCountryFixturesTest extends TestCase
     }
 
     public function test_getDependencies_returnsCorrectDependencies(): void
-    {
-        /** @var FlagService $flagService */
-        $flagService = $this->createMock(FlagService::class);
+    {        $flagService = $this->createMock(FlagService::class);
         $fixtures = new CurrencyCountryFixtures($flagService);
         
         $dependencies = $fixtures->getDependencies();
-        
-        $this->assertIsArray($dependencies);
         $this->assertContains(CountryFixtures::class, $dependencies);
         $this->assertContains(CurrencyFixtures::class, $dependencies);
     }
 
     public function test_getOrder_returnsCorrectOrder(): void
-    {
-        /** @var FlagService $flagService */
-        $flagService = $this->createMock(FlagService::class);
+    {        $flagService = $this->createMock(FlagService::class);
         $fixtures = new CurrencyCountryFixtures($flagService);
         
         $this->assertSame(3, $fixtures->getOrder());
     }
 
     public function test_implementsDependentFixtureInterface(): void
-    {
-        /** @var FlagService $flagService */
-        $flagService = $this->createMock(FlagService::class);
+    {        $flagService = $this->createMock(FlagService::class);
         $fixtures = new CurrencyCountryFixtures($flagService);
         
         $this->assertInstanceOf(\Doctrine\Common\DataFixtures\DependentFixtureInterface::class, $fixtures);
     }
 
     public function test_extendsFixture(): void
-    {
-        /** @var FlagService $flagService */
-        $flagService = $this->createMock(FlagService::class);
+    {        $flagService = $this->createMock(FlagService::class);
         $fixtures = new CurrencyCountryFixtures($flagService);
         
         $this->assertInstanceOf(\Doctrine\Bundle\FixturesBundle\Fixture::class, $fixtures);
@@ -82,9 +72,7 @@ class CurrencyCountryFixturesTest extends TestCase
     }
 
     public function test_getCountryCodeByCurrency_mappingExists(): void
-    {
-        /** @var FlagService $flagService */
-        $flagService = $this->createMock(FlagService::class);
+    {        $flagService = $this->createMock(FlagService::class);
         $fixtures = new CurrencyCountryFixtures($flagService);
         
         // 测试方法存在 (private 方法，通过反射测试)

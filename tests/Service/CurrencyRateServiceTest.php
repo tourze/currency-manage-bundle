@@ -80,8 +80,6 @@ class CurrencyRateServiceTest extends TestCase
             ->method('flush');
 
         $result = $this->service->syncRates();
-
-        $this->assertIsArray($result);
         $this->assertArrayHasKey('updatedCount', $result);
         $this->assertArrayHasKey('historyCount', $result);
         $this->assertArrayHasKey('updateTime', $result);
@@ -122,8 +120,6 @@ class CurrencyRateServiceTest extends TestCase
             $updateTime,
             $rateDate
         );
-
-        $this->assertIsArray($result);
         $this->assertTrue($result['updated']);
         $this->assertTrue($result['historySaved']);
         $this->assertInstanceOf(Currency::class, $result['currency']);

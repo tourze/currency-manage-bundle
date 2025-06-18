@@ -78,7 +78,6 @@ class CountryFixturesTest extends TestCase
         
         foreach ($testCodes as $code) {
             $expectedReference = 'country_' . $code;
-            $this->assertIsString($expectedReference);
             $this->assertStringStartsWith('country_', $expectedReference);
         }
     }
