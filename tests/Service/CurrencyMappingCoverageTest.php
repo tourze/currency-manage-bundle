@@ -26,8 +26,11 @@ class CurrencyMappingCoverageTest extends TestCase
 
     public function test_flagServiceBasicFunctionality(): void
     {
-        // 直接测试 FlagService 的功能，而不是检查方法是否存在
-        $this->assertInstanceOf(FlagService::class, $this->flagService);
+        // 测试 FlagService 的基本功能
+        $this->assertTrue(method_exists($this->flagService, 'getFlagCodeFromCurrencyViaCountry'));
+        $this->assertTrue(method_exists($this->flagService, 'getFlagPathFromCurrency'));
+        $this->assertTrue(method_exists($this->flagService, 'getAvailableFlags'));
+        $this->assertTrue(method_exists($this->flagService, 'flagExists'));
     }
 
     public function test_getFlagCodeFromCurrencyViaCountry_withEmptyResult(): void
@@ -44,14 +47,12 @@ class CurrencyMappingCoverageTest extends TestCase
     public function test_getAvailableFlags_returnsArray(): void
     {
         $flags = $this->flagService->getAvailableFlags();
-        // 已知返回类型是数组，不需要断言类型
-        $this->assertNotNull($flags);
+        $this->assertIsArray($flags);
     }
 
     public function test_flagExists_returnsBool(): void
     {
         $result = $this->flagService->flagExists('us');
-        // 已知返回类型是布尔值，测试具体逻辑
-        $this->assertNotNull($result);
+        $this->assertIsBool($result);
     }
 }

@@ -81,7 +81,7 @@ class CurrencyRateServiceTest extends TestCase
 
         $result = $this->service->syncRates();
 
-        // 直接检查结果内容，不需要断言类型
+        $this->assertIsArray($result);
         $this->assertArrayHasKey('updatedCount', $result);
         $this->assertArrayHasKey('historyCount', $result);
         $this->assertArrayHasKey('updateTime', $result);
@@ -123,7 +123,7 @@ class CurrencyRateServiceTest extends TestCase
             $rateDate
         );
 
-        // 直接检查结果内容，不需要断言类型
+        $this->assertIsArray($result);
         $this->assertTrue($result['updated']);
         $this->assertTrue($result['historySaved']);
         $this->assertInstanceOf(Currency::class, $result['currency']);

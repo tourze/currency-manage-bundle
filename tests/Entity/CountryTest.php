@@ -88,10 +88,11 @@ class CountryTest extends TestCase
 
     public function test_setCreateTime_setsTimeCorrectly(): void
     {
-        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
+        $time = new \DateTime('2025-01-01 12:00:00');
 
-        $this->country->setCreateTime($time);
+        $result = $this->country->setCreateTime($time);
 
+        $this->assertSame($this->country, $result);
         $this->assertSame($time, $this->country->getCreateTime());
     }
 
@@ -102,10 +103,11 @@ class CountryTest extends TestCase
 
     public function test_setUpdateTime_setsTimeCorrectly(): void
     {
-        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
+        $time = new \DateTime('2025-01-01 12:00:00');
 
-        $this->country->setUpdateTime($time);
+        $result = $this->country->setUpdateTime($time);
 
+        $this->assertSame($this->country, $result);
         $this->assertSame($time, $this->country->getUpdateTime());
     }
 
@@ -221,16 +223,16 @@ class CountryTest extends TestCase
 
     public function test_fluentInterface_chainedCalls(): void
     {
-        $createTime = new \DateTimeImmutable('2025-01-01 10:00:00');
-        $updateTime = new \DateTimeImmutable('2025-01-01 12:00:00');
+        $createTime = new \DateTime('2025-01-01 10:00:00');
+        $updateTime = new \DateTime('2025-01-01 12:00:00');
 
         $result = $this->country
             ->setCode('US')
             ->setName('美国')
             ->setFlagCode('us')
-            ->setValid(true);
-        $this->country->setCreateTime($createTime);
-        $this->country->setUpdateTime($updateTime);
+            ->setValid(true)
+            ->setCreateTime($createTime)
+            ->setUpdateTime($updateTime);
 
         $this->assertSame($this->country, $result);
         $this->assertSame('US', $this->country->getCode());
