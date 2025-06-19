@@ -2,7 +2,7 @@
 
 namespace Tourze\CurrencyManageBundle\Service;
 
-use Carbon\Carbon;
+use Carbon\CarbonImmutable;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Tourze\CurrencyManageBundle\Entity\Currency as CurrencyEntity;
 use Tourze\CurrencyManageBundle\Entity\CurrencyRateHistory;
@@ -34,7 +34,7 @@ class CurrencyRateService
 
         $updatedCount = 0;
         $historyCount = 0;
-        $updateTime = Carbon::createFromTimestamp($json['time_last_updated'], date_default_timezone_get());
+        $updateTime = CarbonImmutable::createFromTimestamp($json['time_last_updated'], date_default_timezone_get());
         $rateDate = $updateTime->clone()->setTime(0, 0, 0);
 
         // 遍历所有货币枚举值

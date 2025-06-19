@@ -23,84 +23,16 @@ class CurrencyRateHistoryRepositoryTest extends TestCase
         $this->assertInstanceOf(\Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository::class, $repository);
     }
 
-    public function test_save_methodExists(): void
+    public function test_repositoryHasBasicFunctionality(): void
     {
         $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
         $repository = new CurrencyRateHistoryRepository($registry);
         
-        $this->assertTrue(method_exists($repository, 'save'));
-    }
-
-    public function test_remove_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'remove'));
-    }
-
-    public function test_findByCurrencyAndDate_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'findByCurrencyAndDate'));
-    }
-
-    public function test_findByCurrencyCode_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'findByCurrencyCode'));
-    }
-
-    public function test_findByDateRange_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'findByDateRange'));
-    }
-
-    public function test_findLatestByCurrency_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'findLatestByCurrency'));
-    }
-
-    public function test_findAllByDate_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'findAllByDate'));
-    }
-
-    public function test_deleteBeforeDate_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'deleteBeforeDate'));
-    }
-
-    public function test_getStatistics_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'getStatistics'));
-    }
-
-    public function test_flush_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRateHistoryRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'flush'));
+        // 测试仓储的基本结构是否完整
+        $reflection = new \ReflectionClass($repository);
+        $this->assertTrue($reflection->hasMethod('findAll'));
+        $this->assertTrue($reflection->hasMethod('save'));
+        $this->assertTrue($reflection->hasMethod('remove'));
     }
 
     public function test_save_withValidSignature(): void

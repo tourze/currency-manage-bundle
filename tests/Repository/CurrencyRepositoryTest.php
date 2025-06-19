@@ -23,28 +23,16 @@ class CurrencyRepositoryTest extends TestCase
         $this->assertInstanceOf(\Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository::class, $repository);
     }
 
-    public function test_findByCode_methodExists(): void
+    public function test_repositoryHasBasicFunctionality(): void
     {
         $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
         $repository = new CurrencyRepository($registry);
         
-        $this->assertTrue(method_exists($repository, 'findByCode'));
-    }
-
-    public function test_save_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'save'));
-    }
-
-    public function test_remove_methodExists(): void
-    {
-        $registry = $this->createMock(\Doctrine\Persistence\ManagerRegistry::class);
-        $repository = new CurrencyRepository($registry);
-        
-        $this->assertTrue(method_exists($repository, 'remove'));
+        // 测试仓储的基本结构是否完整
+        $reflection = new \ReflectionClass($repository);
+        $this->assertTrue($reflection->hasMethod('findAll'));
+        $this->assertTrue($reflection->hasMethod('findByCode'));
+        $this->assertTrue($reflection->hasMethod('save'));
     }
 
     public function test_save_withValidSignature(): void
