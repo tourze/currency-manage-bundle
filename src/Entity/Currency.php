@@ -16,7 +16,7 @@ class Currency implements \Stringable
     use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(name: 'flags', length: 32, options: ['comment' => '货币标识'])]
@@ -37,7 +37,10 @@ class Currency implements \Stringable
 
     #[CreateTimeColumn]
     #[UpdateTimeColumn]
-    #[ORM\Column(name: 'rateUpdateDate', type: Types::DATETIME_MUTABLE, nullable: true, options: ['comment' => '汇率更新时间'])]public function getId(): ?int
+    #[ORM\Column(name: 'rateUpdateDate', type: Types::DATETIME_IMMUTABLE, nullable: true, options: ['comment' => '汇率更新时间'])]
+    private ?\DateTimeImmutable $rateUpdateDate = null;
+
+    public function getId(): ?int
     {
         return $this->id;
     }
@@ -88,7 +91,9 @@ class Currency implements \Stringable
         $this->rateToCny = $rateToCny;
 
         return $this;
-    }public function getCountry(): ?Country
+    }
+
+    public function getCountry(): ?Country
     {
         return $this->country;
     }
@@ -100,8 +105,20 @@ class Currency implements \Stringable
         return $this;
     }
 
+    public function getRateUpdateDate(): ?\DateTimeImmutable
+    {
+        return $this->rateUpdateDate;
+    }
+
+    public function setRateUpdateDate(?\DateTimeImmutable $rateUpdateDate): static
+    {
+        $this->rateUpdateDate = $rateUpdateDate;
+
+        return $this;
+    }
+
     public function __toString(): string
     {
-        return $this->getId() ? "{$this->getName()}[{$this->getSymbol()}]" : '';
+        return null !== $this->getId() ? "{$this->getName()}[{$this->getSymbol()}]" : '';
     }
 }

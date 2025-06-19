@@ -88,7 +88,7 @@ class CountryTest extends TestCase
 
     public function test_setCreateTime_setsTimeCorrectly(): void
     {
-        $time = new \DateTime('2025-01-01 12:00:00');
+        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
 
         $result = $this->country->setCreateTime($time);
 
@@ -103,7 +103,7 @@ class CountryTest extends TestCase
 
     public function test_setUpdateTime_setsTimeCorrectly(): void
     {
-        $time = new \DateTime('2025-01-01 12:00:00');
+        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
 
         $result = $this->country->setUpdateTime($time);
 
@@ -223,8 +223,8 @@ class CountryTest extends TestCase
 
     public function test_fluentInterface_chainedCalls(): void
     {
-        $createTime = new \DateTime('2025-01-01 10:00:00');
-        $updateTime = new \DateTime('2025-01-01 12:00:00');
+        $createTime = new \DateTimeImmutable('2025-01-01 10:00:00');
+        $updateTime = new \DateTimeImmutable('2025-01-01 12:00:00');
 
         $result = $this->country
             ->setCode('US')

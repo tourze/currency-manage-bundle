@@ -23,7 +23,7 @@ class FlagService
     {
         $flagIconsPath = InstalledVersions::getInstallPath('lipis/flag-icons');
 
-        if (!$flagIconsPath) {
+        if (null === $flagIconsPath) {
             return null;
         }
 
@@ -38,7 +38,7 @@ class FlagService
     public function getFlagPathFromCountry(Country $country, string $ratio = '4x3'): ?string
     {
         $flagCode = $country->getFlagCode();
-        if (!$flagCode) {
+        if (null === $flagCode || '' === $flagCode) {
             return null;
         }
 
@@ -52,7 +52,7 @@ class FlagService
     {
         // 通过 Country 实体获取国旗代码
         $flagCode = $this->getFlagCodeFromCurrencyViaCountry($currencyCode);
-        if ($flagCode) {
+        if (null !== $flagCode) {
             return $this->getFlagPath($flagCode, $ratio);
         }
 
@@ -94,7 +94,7 @@ class FlagService
     {
         $flagIconsPath = InstalledVersions::getInstallPath('lipis/flag-icons');
 
-        if (!$flagIconsPath) {
+        if (null === $flagIconsPath) {
             return [];
         }
 

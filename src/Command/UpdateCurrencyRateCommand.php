@@ -10,9 +10,10 @@ use Tourze\CurrencyManageBundle\Service\CurrencyRateService;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
 #[AsCronTask('40 8 * * *')]
-#[AsCommand(name: 'curreny-manage:update-rate', description: '更新汇率信息')]
+#[AsCommand(name: self::NAME, description: '更新汇率信息')]
 class UpdateCurrencyRateCommand extends Command
 {
+    public const NAME = 'curreny-manage:update-rate';
     public function __construct(
         private readonly CurrencyRateService $currencyRateService,
     ) {

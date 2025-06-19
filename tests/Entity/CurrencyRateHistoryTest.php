@@ -119,7 +119,7 @@ class CurrencyRateHistoryTest extends TestCase
 
     public function test_setRateDate_setsDateCorrectly(): void
     {
-        $date = new \DateTime('2025-01-01');
+        $date = new \DateTimeImmutable('2025-01-01');
         
         $result = $this->history->setRateDate($date);
         
@@ -138,7 +138,7 @@ class CurrencyRateHistoryTest extends TestCase
 
     public function test_setCreatedAt_setsTimeCorrectly(): void
     {
-        $time = new \DateTime('2025-01-01 12:00:00');
+        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
         
         $result = $this->history->setCreatedAt($time);
         
@@ -162,7 +162,7 @@ class CurrencyRateHistoryTest extends TestCase
     {
         $this->history->setCurrencyName('美元');
         $this->history->setCurrencySymbol('$');
-        $this->history->setRateDate(new \DateTime('2025-01-01'));
+        $this->history->setRateDate(new \DateTimeImmutable('2025-01-01'));
         
         $result = $this->history->__toString();
         
@@ -179,7 +179,7 @@ class CurrencyRateHistoryTest extends TestCase
         
         $this->history->setCurrencyName('美元');
         $this->history->setCurrencySymbol('$');
-        $this->history->setRateDate(new \DateTime('2025-01-01'));
+        $this->history->setRateDate(new \DateTimeImmutable('2025-01-01'));
         
         $result = $this->history->__toString();
         
@@ -195,7 +195,7 @@ class CurrencyRateHistoryTest extends TestCase
         
         $this->history->setCurrencyName('');
         $this->history->setCurrencySymbol('');
-        $this->history->setRateDate(new \DateTime('2025-01-01'));
+        $this->history->setRateDate(new \DateTimeImmutable('2025-01-01'));
         
         $result = $this->history->__toString();
         
@@ -204,8 +204,8 @@ class CurrencyRateHistoryTest extends TestCase
 
     public function test_fluentInterface_chainedCalls(): void
     {
-        $date = new \DateTime('2025-01-01');
-        $time = new \DateTime('2025-01-01 12:00:00');
+        $date = new \DateTimeImmutable('2025-01-01');
+        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
         
         $result = $this->history
             ->setCurrencyCode('USD')

@@ -84,7 +84,7 @@ class CurrencyRateService
 
         // 查找或创建货币实体
         $currencyEntity = $this->currencyRepository->findByCode($currencyCode);
-        if (!$currencyEntity) {
+        if (null === $currencyEntity) {
             $currencyEntity = new CurrencyEntity();
             $currencyEntity->setCode($currencyCode);
             $currencyEntity->setName($currencyName);
@@ -93,7 +93,7 @@ class CurrencyRateService
 
         // 更新汇率和时间
         $currencyEntity->setRateToCny($rate);
-        $currencyEntity->setUpdateTime($updateTime);
+        $currencyEntity->setUpdateTime($updateTime instanceof \DateTimeImmutable ? $updateTime : \DateTimeImmutable::createFromInterface($updateTime));
 
         // 只persist，不立即flush
         $this->currencyRepository->save($currencyEntity, false);
@@ -102,7 +102,7 @@ class CurrencyRateService
         $existingHistory = $this->historyRepository->findByCurrencyAndDate($currencyCode, $rateDate);
         $historySaved = false;
 
-        if (!$existingHistory) {
+        if (null === $existingHistory) {
             // 创建历史汇率记录
             $history = new CurrencyRateHistory();
             $history->setCurrencyCode($currencyCode);
@@ -110,7 +110,7 @@ class CurrencyRateService
             $history->setCurrencySymbol($currencyCode);
             $history->setFlag($flagCode);
             $history->setRateToCny($rate);
-            $history->setRateDate($rateDate);
+            $history->setRateDate($rateDate instanceof \DateTimeImmutable ? $rateDate : \DateTimeImmutable::createFromInterface($rateDate));
 
             $this->historyRepository->save($history, false);
             $historySaved = true;

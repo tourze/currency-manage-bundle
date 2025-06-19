@@ -16,7 +16,7 @@ class CurrencyRateHistory implements \Stringable
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 32, options: ['comment' => '货币代码'])]
@@ -34,12 +34,12 @@ class CurrencyRateHistory implements \Stringable
     #[ORM\Column(options: ['comment' => '对人民币汇率'])]
     private float $rateToCny = 0.0;
 
-    #[ORM\Column(type: Types::DATE_MUTABLE, options: ['comment' => '汇率日期'])]
-    private \DateTimeInterface $rateDate;
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '汇率日期'])]
+    private \DateTimeImmutable $rateDate;
 
     #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_MUTABLE, options: ['comment' => '记录创建时间'])]
-    private ?\DateTimeInterface $createdAt = null;
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '记录创建时间'])]
+    private ?\DateTimeImmutable $createdAt = null;
 
     public function getId(): ?int
     {
@@ -106,24 +106,24 @@ class CurrencyRateHistory implements \Stringable
         return $this;
     }
 
-    public function getRateDate(): \DateTimeInterface
+    public function getRateDate(): \DateTimeImmutable
     {
         return $this->rateDate;
     }
 
-    public function setRateDate(\DateTimeInterface $rateDate): static
+    public function setRateDate(\DateTimeImmutable $rateDate): static
     {
         $this->rateDate = $rateDate;
 
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeInterface
+    public function getCreatedAt(): ?\DateTimeImmutable
     {
         return $this->createdAt;
     }
 
-    public function setCreatedAt(?\DateTimeInterface $createdAt): static
+    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
     {
         $this->createdAt = $createdAt;
 
@@ -132,7 +132,7 @@ class CurrencyRateHistory implements \Stringable
 
     public function __toString(): string
     {
-        return $this->getId() 
+        return null !== $this->getId() 
             ? "{$this->getCurrencyName()}[{$this->getCurrencySymbol()}] - {$this->getRateDate()->format('Y-m-d')}" 
             : '';
     }

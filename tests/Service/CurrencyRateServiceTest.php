@@ -91,8 +91,8 @@ class CurrencyRateServiceTest extends TestCase
         $currencyCode = 'USD';
         $currencyName = '美元';
         $rate = 7.0;
-        $updateTime = new \DateTime();
-        $rateDate = new \DateTime();
+        $updateTime = new \DateTimeImmutable();
+        $rateDate = new \DateTimeImmutable();
 
         $this->flagService->method('getFlagCodeFromCurrencyViaCountry')
             ->with($currencyCode)
@@ -130,8 +130,8 @@ class CurrencyRateServiceTest extends TestCase
         $currencyCode = 'USD';
         $currencyName = '美元';
         $rate = 7.0;
-        $updateTime = new \DateTime();
-        $rateDate = new \DateTime();
+        $updateTime = new \DateTimeImmutable();
+        $rateDate = new \DateTimeImmutable();
 
         $existingCurrency = new Currency();
         $existingCurrency->setCode($currencyCode);
@@ -174,8 +174,8 @@ class CurrencyRateServiceTest extends TestCase
         $currencyCode = 'USD';
         $currencyName = '美元';
         $rate = 7.0;
-        $updateTime = new \DateTime();
-        $rateDate = new \DateTime();
+        $updateTime = new \DateTimeImmutable();
+        $rateDate = new \DateTimeImmutable();
 
         $existingHistory = new CurrencyRateHistory();
         $existingHistory->setCurrencyCode($currencyCode);

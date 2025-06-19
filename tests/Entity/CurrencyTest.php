@@ -152,7 +152,7 @@ class CurrencyTest extends TestCase
 
     public function test_setUpdateTime_setsTimeCorrectly(): void
     {
-        $time = new \DateTime('2025-01-01 12:00:00');
+        $time = new \DateTimeImmutable('2025-01-01 12:00:00');
         
         $result = $this->currency->setUpdateTime($time);
         
@@ -214,10 +214,8 @@ class CurrencyTest extends TestCase
         $idProperty->setAccessible(true);
         $idProperty->setValue($this->currency, 1);
         
-        // 直接使用反射设置为null，因为setter不接受null
-        $nameProperty = $reflection->getProperty('name');
-        $nameProperty->setAccessible(true);
-        $nameProperty->setValue($this->currency, null);
+        // 设置空名称来测试 toString 的处理
+        $this->currency->setName('');
         
         $this->currency->setSymbol('¥');
         
@@ -262,7 +260,7 @@ class CurrencyTest extends TestCase
 
     public function test_fluentInterface_chainedCalls(): void
     {
-        $time = new \DateTime();
+        $time = new \DateTimeImmutable();
         
         $result = $this->currency
             ->setSymbol('$')

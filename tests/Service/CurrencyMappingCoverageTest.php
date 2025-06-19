@@ -47,10 +47,12 @@ class CurrencyMappingCoverageTest extends TestCase
     public function test_getAvailableFlags_returnsArray(): void
     {
         $flags = $this->flagService->getAvailableFlags();
+        $this->assertIsArray($flags);
     }
 
     public function test_flagExists_returnsBool(): void
     {
         $result = $this->flagService->flagExists('us');
+        $this->assertIsBool($result);
     }
 }

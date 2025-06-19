@@ -18,7 +18,7 @@ class Country implements \Stringable
     use TimestampableAware;
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[IndexColumn]
@@ -150,6 +150,6 @@ class Country implements \Stringable
 
     public function __toString(): string
     {
-        return $this->getId() ? "{$this->getName()}[{$this->getCode()}]" : '';
+        return null !== $this->getId() ? "{$this->getName()}[{$this->getCode()}]" : '';
     }
 } 

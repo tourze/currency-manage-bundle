@@ -10,9 +10,9 @@ use Symfony\Component\Routing\Attribute\Route;
 use Tourze\CurrencyManageBundle\Service\FlagService;
 
 /**
- * 国旗图片控制器 (4x3 比例)
+ * 国旗图片控制器 (1x1 比例)
  */
-class FlagController extends AbstractController
+class Flag1x1Controller extends AbstractController
 {
     public function __construct(
         private readonly FlagService $flagService,
@@ -20,10 +20,10 @@ class FlagController extends AbstractController
     {
     }
 
-    #[Route('/currency/flag/{code}', name: 'currency_flag', methods: ['GET'])]
+    #[Route('/currency/flag/{code}/1x1', name: 'currency_flag_1x1', methods: ['GET'])]
     public function __invoke(string $code): Response
     {
-        $flagFile = $this->flagService->getFlagPath($code, '4x3');
+        $flagFile = $this->flagService->getFlagPath($code, '1x1');
 
         if (null === $flagFile) {
             throw new NotFoundHttpException('Flag not found for code: ' . $code);
