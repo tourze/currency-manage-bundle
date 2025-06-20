@@ -28,24 +28,24 @@ class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterfa
 
         foreach ($currencies as $currency) {
             $currencyCode = $currency->getCode();
-            if (!$currencyCode || $currency->getCountry()) {
+            if ($currencyCode === null || $currency->getCountry() !== null) {
                 // 跳过已有国家关联的货币
                 continue;
             }
 
             // 使用 FlagService 获取对应的国旗代码
             $flagCode = $this->flagService->getFlagCodeFromCurrencyViaCountry($currencyCode);
-            if (!$flagCode) {
+            if ($flagCode === null) {
                 // 尝试根据货币代码映射常见国家
                 $flagCode = $this->getCountryCodeByCurrency($currencyCode);
             }
 
-            if ($flagCode) {
+            if ($flagCode !== null) {
                 // 根据国旗代码查找对应的国家
                 $country = $manager->getRepository(Country::class)
                     ->findOneBy(['flagCode' => $flagCode]);
 
-                if ($country) {
+                if ($country !== null) {
                     $currency->setCountry($country);
                     $manager->persist($currency);
                     $associatedCount++;

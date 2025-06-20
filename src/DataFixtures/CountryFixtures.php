@@ -20,7 +20,7 @@ class CountryFixtures extends Fixture
             $existingCountry = $manager->getRepository(Country::class)
                 ->findOneBy(['code' => $alpha2Code->value]);
 
-            if ($existingCountry) {
+            if ($existingCountry !== null) {
                 // 如果已存在，更新名称（可能有翻译更新）
                 $existingCountry->setName($alpha2Code->getLabel());
                 $existingCountry->setFlagCode(strtolower($alpha2Code->value));
