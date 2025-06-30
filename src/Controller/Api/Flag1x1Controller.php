@@ -20,7 +20,7 @@ class Flag1x1Controller extends AbstractController
     {
     }
 
-    #[Route('/currency/flag/{code}/1x1', name: 'currency_flag_1x1', methods: ['GET'])]
+    #[Route(path: '/currency/flag/{code}/1x1', name: 'currency_flag_1x1', methods: ['GET'])]
     public function __invoke(string $code): Response
     {
         $flagFile = $this->flagService->getFlagPath($code, '1x1');

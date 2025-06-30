@@ -10,7 +10,7 @@ use Tourze\CurrencyManageBundle\Controller\Api\Flag1x1Controller;
 use Tourze\CurrencyManageBundle\Controller\Api\FlagController;
 use Tourze\RoutingAutoLoaderBundle\Service\RoutingAutoLoaderInterface;
 
-#[AutoconfigureTag('routing.loader')]
+#[AutoconfigureTag(name: 'routing.loader')]
 class AttributeControllerLoader extends Loader implements RoutingAutoLoaderInterface
 {
     private AttributeRouteControllerLoader $controllerLoader;

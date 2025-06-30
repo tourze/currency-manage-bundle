@@ -8,7 +8,7 @@ use Tourze\CurrencyManageBundle\Service\FlagService;
 
 /**
  * 货币映射覆盖率测试
- * 
+ *
  * 注意：由于 getFlagCodeFromCurrency 方法已被删除，
  * 这些测试现在主要测试 FlagService 的基本功能
  */

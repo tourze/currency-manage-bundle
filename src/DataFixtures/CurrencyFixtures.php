@@ -8,7 +8,8 @@ use Doctrine\Persistence\ObjectManager;
 use Tourze\CurrencyManageBundle\Service\CurrencyRateService;
 
 /**
- * 货币数据初始化
+ * 货币汇率数据初始化
+ * 依赖于CurrencyCountryFixtures创建的基础货币数据
  */
 class CurrencyFixtures extends Fixture implements DependentFixtureInterface
 {
@@ -19,7 +20,7 @@ class CurrencyFixtures extends Fixture implements DependentFixtureInterface
 
     public function load(ObjectManager $manager): void
     {
-        // 使用 Service 层初始化基础货币数据
+        // 使用 Service 层同步汇率数据
         $this->currencyRateService->syncRates();
 
         // 可以在这里添加额外的初始化逻辑，比如记录日志
@@ -29,7 +30,7 @@ class CurrencyFixtures extends Fixture implements DependentFixtureInterface
     public function getDependencies(): array
     {
         return [
-            CountryFixtures::class,
+            CurrencyCountryFixtures::class,
         ];
     }
 
@@ -38,6 +39,6 @@ class CurrencyFixtures extends Fixture implements DependentFixtureInterface
      */
     public function getOrder(): int
     {
-        return 2;
+        return 3;
     }
 }

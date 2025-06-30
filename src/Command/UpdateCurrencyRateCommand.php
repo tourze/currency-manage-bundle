@@ -9,7 +9,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Tourze\CurrencyManageBundle\Service\CurrencyRateService;
 use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 
-#[AsCronTask('40 8 * * *')]
+#[AsCronTask(expression: '40 8 * * *')]
 #[AsCommand(name: self::NAME, description: '更新汇率信息')]
 class UpdateCurrencyRateCommand extends Command
 {

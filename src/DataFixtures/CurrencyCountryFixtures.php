@@ -7,112 +7,76 @@ use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Entity\Currency;
-use Tourze\CurrencyManageBundle\Service\FlagService;
 
 /**
- * 货币与国家关联数据修复
+ * 预定义货币数据初始化
+ * 创建常见的货币记录并关联到对应国家
  */
 class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterface
 {
-    public function __construct(
-        private readonly FlagService $flagService,
-    ) {
-    }
-
     public function load(ObjectManager $manager): void
     {
-        // 获取所有现有的货币
-        $currencies = $manager->getRepository(Currency::class)->findAll();
+        $currencyMappings = $this->getCurrencyCountryMappings();
 
-        $associatedCount = 0;
-
-        foreach ($currencies as $currency) {
-            $currencyCode = $currency->getCode();
-            if ($currencyCode === null || $currency->getCountry() !== null) {
-                // 跳过已有国家关联的货币
-                continue;
+        foreach ($currencyMappings as $currencyData) {
+            $currency = new Currency();
+            $currency->setCode($currencyData['code']);
+            $currency->setName($currencyData['name']);
+            if (isset($currencyData['symbol'])) {
+                $currency->setSymbol($currencyData['symbol']);
             }
 
-            // 使用 FlagService 获取对应的国旗代码
-            $flagCode = $this->flagService->getFlagCodeFromCurrencyViaCountry($currencyCode);
-            if ($flagCode === null) {
-                // 尝试根据货币代码映射常见国家
-                $flagCode = $this->getCountryCodeByCurrency($currencyCode);
+            // 通过引用获取对应的国家
+            if (isset($currencyData['countryCode']) && $this->hasReference('country_' . $currencyData['countryCode'], Country::class)) {
+                $country = $this->getReference('country_' . $currencyData['countryCode'], Country::class);
+                $currency->setCountry($country);
             }
 
-            if ($flagCode !== null) {
-                // 根据国旗代码查找对应的国家
-                $country = $manager->getRepository(Country::class)
-                    ->findOneBy(['flagCode' => $flagCode]);
+            $manager->persist($currency);
 
-                if ($country !== null) {
-                    $currency->setCountry($country);
-                    $manager->persist($currency);
-                    $associatedCount++;
-                }
-            }
+            // 为货币添加引用，供其他 Fixture 使用
+            $this->addReference('currency_' . $currencyData['code'], $currency);
         }
 
-        if ($associatedCount > 0) {
-            $manager->flush();
-        }
+        $manager->flush();
     }
 
     /**
-     * 根据货币代码获取对应的国家代码
+     * 获取货币-国家映射数据
      */
-    private function getCountryCodeByCurrency(string $currencyCode): ?string
+    private function getCurrencyCountryMappings(): array
     {
-        $mapping = [
-            'CNY' => 'cn',
-            'USD' => 'us',
-            'EUR' => 'eu',
-            'JPY' => 'jp',
-            'GBP' => 'gb',
-            'HKD' => 'hk',
-            'CAD' => 'ca',
-            'AUD' => 'au',
-            'SGD' => 'sg',
-            'CHF' => 'ch',
-            'TWD' => 'tw',
-            'KRW' => 'kr',
-            'THB' => 'th',
-            'MYR' => 'my',
-            'PHP' => 'ph',
-            'INR' => 'in',
-            'IDR' => 'id',
-            'VND' => 'vn',
-            'RUB' => 'ru',
-            'BRL' => 'br',
-            'MXN' => 'mx',
-            'AED' => 'ae',
-            'SAR' => 'sa',
-            'ZAR' => 'za',
-            'EGP' => 'eg',
-            'TRY' => 'tr',
-            'PLN' => 'pl',
-            'CZK' => 'cz',
-            'HUF' => 'hu',
-            'RON' => 'ro',
-            'BGN' => 'bg',
-            'HRK' => 'hr',
-            'DKK' => 'dk',
-            'SEK' => 'se',
-            'NOK' => 'no',
-            'ISK' => 'is',
+        return [
+            ['code' => 'CNY', 'name' => '人民币', 'symbol' => '¥', 'countryCode' => 'CN'],
+            ['code' => 'USD', 'name' => '美元', 'symbol' => '$', 'countryCode' => 'US'],
+            ['code' => 'EUR', 'name' => '欧元', 'symbol' => '€', 'countryCode' => null], // 欧盟，无对应单一国家
+            ['code' => 'JPY', 'name' => '日元', 'symbol' => '¥', 'countryCode' => 'JP'],
+            ['code' => 'GBP', 'name' => '英镑', 'symbol' => '£', 'countryCode' => 'GB'],
+            ['code' => 'HKD', 'name' => '港币', 'symbol' => 'HK$', 'countryCode' => 'HK'],
+            ['code' => 'CAD', 'name' => '加拿大元', 'symbol' => 'CA$', 'countryCode' => 'CA'],
+            ['code' => 'AUD', 'name' => '澳大利亚元', 'symbol' => 'A$', 'countryCode' => 'AU'],
+            ['code' => 'SGD', 'name' => '新加坡元', 'symbol' => 'S$', 'countryCode' => 'SG'],
+            ['code' => 'CHF', 'name' => '瑞士法郎', 'symbol' => 'CHF', 'countryCode' => 'CH'],
+            ['code' => 'KRW', 'name' => '韩元', 'symbol' => '₩', 'countryCode' => 'KR'],
+            ['code' => 'THB', 'name' => '泰铢', 'symbol' => '฿', 'countryCode' => 'TH'],
+            ['code' => 'MYR', 'name' => '马来西亚林吉特', 'symbol' => 'RM', 'countryCode' => 'MY'],
+            ['code' => 'PHP', 'name' => '菲律宾比索', 'symbol' => '₱', 'countryCode' => 'PH'],
+            ['code' => 'INR', 'name' => '印度卢比', 'symbol' => '₹', 'countryCode' => 'IN'],
+            ['code' => 'IDR', 'name' => '印尼盾', 'symbol' => 'Rp', 'countryCode' => 'ID'],
+            ['code' => 'VND', 'name' => '越南盾', 'symbol' => '₫', 'countryCode' => 'VN'],
+            ['code' => 'RUB', 'name' => '俄罗斯卢布', 'symbol' => '₽', 'countryCode' => 'RU'],
+            ['code' => 'BRL', 'name' => '巴西雷亚尔', 'symbol' => 'R$', 'countryCode' => 'BR'],
+            ['code' => 'MXN', 'name' => '墨西哥比索', 'symbol' => 'Mex$', 'countryCode' => 'MX'],
         ];
-
-        return $mapping[$currencyCode] ?? null;
     }
 
     /**
-     * 依赖于 CountryFixtures 和 CurrencyFixtures
+     * 依赖于 CountryFixtures
      */
     public function getDependencies(): array
     {
         return [
             CountryFixtures::class,
-            CurrencyFixtures::class,
         ];
     }
 
@@ -121,6 +85,6 @@ class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterfa
      */
     public function getOrder(): int
     {
-        return 3;
+        return 2;
     }
 }
