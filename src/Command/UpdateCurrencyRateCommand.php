@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Command;
 
 use Symfony\Component\Console\Attribute\AsCommand;
@@ -13,7 +15,8 @@ use Tourze\Symfony\CronJob\Attribute\AsCronTask;
 #[AsCommand(name: self::NAME, description: '更新汇率信息')]
 class UpdateCurrencyRateCommand extends Command
 {
-    public const NAME = 'curreny-manage:update-rate';
+    public const NAME = 'currency-manage:update-rate';
+
     public function __construct(
         private readonly CurrencyRateService $currencyRateService,
     ) {
@@ -31,6 +34,7 @@ class UpdateCurrencyRateCommand extends Command
             return Command::SUCCESS;
         } catch (\Throwable $e) {
             $output->writeln("<error>汇率同步失败：{$e->getMessage()}</error>");
+
             return Command::FAILURE;
         }
     }

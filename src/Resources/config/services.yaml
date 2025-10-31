@@ -8,9 +8,11 @@ services:
     resource: '../../Command/'
   Tourze\CurrencyManageBundle\Controller\:
     resource: '../../Controller/'
-  Tourze\CurrencyManageBundle\DataFixtures\:
-    resource: '../../DataFixtures/'
   Tourze\CurrencyManageBundle\Repository\:
     resource: '../../Repository/'
   Tourze\CurrencyManageBundle\Service\:
     resource: '../../Service/'
+  
+  # 确保测试时可以访问 AdminMenu 服务
+  Tourze\CurrencyManageBundle\Service\AdminMenu:
+    public: true

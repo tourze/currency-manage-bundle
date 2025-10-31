@@ -1,18 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Service;
 
 use Composer\InstalledVersions;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 
 /**
  * 国旗服务
  */
-class FlagService
+#[Autoconfigure(public: true)]
+readonly class FlagService
 {
     public function __construct(
-        private readonly CountryRepository $countryRepository,
+        private CountryRepository $countryRepository,
     ) {
     }
 
@@ -67,7 +71,7 @@ class FlagService
         // 这里需要通过货币代码查找对应的国家
         // 由于一个货币可能对应多个国家，我们取第一个有效的
         $countries = $this->countryRepository->findCountriesWithCurrencies();
-        
+
         foreach ($countries as $country) {
             foreach ($country->getCurrencies() as $currency) {
                 if ($currency->getCode() === $currencyCode) {
@@ -84,11 +88,13 @@ class FlagService
      */
     public function flagExists(string $flagCode, string $ratio = '4x3'): bool
     {
-        return $this->getFlagPath($flagCode, $ratio) !== null;
+        return null !== $this->getFlagPath($flagCode, $ratio);
     }
 
     /**
      * 获取所有可用的国旗代码
+     *
+     * @return string[]
      */
     public function getAvailableFlags(string $ratio = '4x3'): array
     {
@@ -106,6 +112,10 @@ class FlagService
 
         $flags = [];
         $files = glob($flagsDir . '/*.svg');
+
+        if (false === $files) {
+            return [];
+        }
 
         foreach ($files as $file) {
             $flags[] = basename($file, '.svg');

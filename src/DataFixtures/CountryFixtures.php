@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\GBT2659\Alpha2Code;
 
@@ -11,6 +14,8 @@ use Tourze\GBT2659\Alpha2Code;
  * 国家数据初始化
  * 注意：此Fixture为一次性数据导入，不包含重复检查逻辑
  */
+#[When(env: 'test')]
+#[When(env: 'dev')]
 class CountryFixtures extends Fixture
 {
     public function load(ObjectManager $manager): void

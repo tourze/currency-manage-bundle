@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Controller\Api;
 
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -12,12 +14,11 @@ use Tourze\CurrencyManageBundle\Service\FlagService;
 /**
  * 国旗图片控制器 (1x1 比例)
  */
-class Flag1x1Controller extends AbstractController
+final class Flag1x1Controller extends AbstractController
 {
     public function __construct(
         private readonly FlagService $flagService,
-    )
-    {
+    ) {
     }
 
     #[Route(path: '/currency/flag/{code}/1x1', name: 'currency_flag_1x1', methods: ['GET'])]

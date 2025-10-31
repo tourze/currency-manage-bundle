@@ -1,49 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\GBT2659\Alpha2Code;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<Country>
- *
- * @method Country|null find($id, $lockMode = null, $lockVersion = null)
- * @method Country|null findOneBy(array $criteria, array $orderBy = null)
- * @method Country[]    findAll()
- * @method Country[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+#[AsRepository(entityClass: Country::class)]
 class CountryRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Country::class);
-    }
-
-    /**
-     * 保存国家
-     */
-    public function save(Country $country, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($country);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    /**
-     * 删除国家
-     */
-    public function remove(Country $country, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($country);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 
     /**
@@ -64,6 +39,8 @@ class CountryRepository extends ServiceEntityRepository
 
     /**
      * 获取所有有效的国家
+     *
+     * @return Country[]
      */
     public function findAllValid(): array
     {
@@ -72,27 +49,59 @@ class CountryRepository extends ServiceEntityRepository
 
     /**
      * 根据名称搜索国家
+     *
+     * @return list<Country>
      */
     public function searchByName(string $name): array
     {
+        /** @var list<Country> */
         return $this->createQueryBuilder('c')
             ->where('c.name LIKE :name')
             ->setParameter('name', '%' . $name . '%')
             ->orderBy('c.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
     }
 
     /**
      * 获取有货币的国家
+     *
+     * @return list<Country>
      */
     public function findCountriesWithCurrencies(): array
     {
+        /** @var list<Country> */
         return $this->createQueryBuilder('c')
             ->innerJoin('c.currencies', 'cur')
             ->orderBy('c.name', 'ASC')
             ->getQuery()
-            ->getResult();
+            ->getResult()
+        ;
+    }
+
+    /**
+     * 保存实体
+     */
+    public function save(Country $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * 删除实体
+     */
+    public function remove(Country $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
     }
 
     /**
@@ -102,4 +111,4 @@ class CountryRepository extends ServiceEntityRepository
     {
         $this->getEntityManager()->flush();
     }
-} 
+}

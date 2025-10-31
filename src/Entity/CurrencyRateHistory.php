@@ -1,45 +1,58 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Entity;
 
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\CurrencyManageBundle\Repository\CurrencyRateHistoryRepository;
-use Tourze\DoctrineTimestampBundle\Attribute\CreateTimeColumn;
+use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
+use Tourze\DoctrineTimestampBundle\Traits\CreateTimeAware;
 
 #[ORM\Entity(repositoryClass: CurrencyRateHistoryRepository::class)]
-#[ORM\Table(name: 'starhome_currency_rate_history', options: ["comment" => '货币汇率历史记录'])]
-#[ORM\Index(name: 'idx_currency_code', columns: ['currency_code'])]
-#[ORM\Index(name: 'idx_rate_date', columns: ['rate_date'])]
-#[ORM\Index(name: 'idx_currency_date', columns: ['currency_code', 'rate_date'])]
+#[ORM\Table(name: 'starhome_currency_rate_history', options: ['comment' => '货币汇率历史记录'])]
+#[ORM\Index(name: 'starhome_currency_rate_history_idx_currency_date', columns: ['currency_code', 'rate_date'])]
 class CurrencyRateHistory implements \Stringable
 {
+    use CreateTimeAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(options: ['comment' => '主键ID'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 32, options: ['comment' => '货币代码'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 32)]
+    #[IndexColumn]
     private string $currencyCode = '';
 
     #[ORM\Column(length: 32, options: ['comment' => '货币名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 32)]
     private string $currencyName = '';
 
     #[ORM\Column(length: 32, options: ['comment' => '货币符号'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 32)]
     private string $currencySymbol = '';
 
     #[ORM\Column(length: 8, nullable: true, options: ['comment' => '国旗代码'])]
+    #[Assert\Length(max: 8)]
     private ?string $flag = null;
 
     #[ORM\Column(options: ['comment' => '对人民币汇率'])]
+    #[Assert\PositiveOrZero]
+    #[Assert\Range(min: 0, max: 99999)]
     private float $rateToCny = 0.0;
 
     #[ORM\Column(type: Types::DATE_IMMUTABLE, options: ['comment' => '汇率日期'])]
+    #[Assert\NotNull]
+    #[Assert\Type(type: \DateTimeImmutable::class)]
+    #[IndexColumn]
     private \DateTimeImmutable $rateDate;
-
-    #[CreateTimeColumn]
-    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, options: ['comment' => '记录创建时间'])]
-    private ?\DateTimeImmutable $createdAt = null;
 
     public function getId(): ?int
     {
@@ -51,11 +64,9 @@ class CurrencyRateHistory implements \Stringable
         return $this->currencyCode;
     }
 
-    public function setCurrencyCode(string $currencyCode): static
+    public function setCurrencyCode(string $currencyCode): void
     {
         $this->currencyCode = $currencyCode;
-
-        return $this;
     }
 
     public function getCurrencyName(): string
@@ -63,11 +74,9 @@ class CurrencyRateHistory implements \Stringable
         return $this->currencyName;
     }
 
-    public function setCurrencyName(string $currencyName): static
+    public function setCurrencyName(string $currencyName): void
     {
         $this->currencyName = $currencyName;
-
-        return $this;
     }
 
     public function getCurrencySymbol(): string
@@ -75,11 +84,9 @@ class CurrencyRateHistory implements \Stringable
         return $this->currencySymbol;
     }
 
-    public function setCurrencySymbol(string $currencySymbol): static
+    public function setCurrencySymbol(string $currencySymbol): void
     {
         $this->currencySymbol = $currencySymbol;
-
-        return $this;
     }
 
     public function getFlag(): ?string
@@ -87,11 +94,9 @@ class CurrencyRateHistory implements \Stringable
         return $this->flag;
     }
 
-    public function setFlag(?string $flag): static
+    public function setFlag(?string $flag): void
     {
         $this->flag = $flag;
-
-        return $this;
     }
 
     public function getRateToCny(): float
@@ -99,11 +104,9 @@ class CurrencyRateHistory implements \Stringable
         return $this->rateToCny;
     }
 
-    public function setRateToCny(float $rateToCny): static
+    public function setRateToCny(float $rateToCny): void
     {
         $this->rateToCny = $rateToCny;
-
-        return $this;
     }
 
     public function getRateDate(): \DateTimeImmutable
@@ -111,29 +114,15 @@ class CurrencyRateHistory implements \Stringable
         return $this->rateDate;
     }
 
-    public function setRateDate(\DateTimeImmutable $rateDate): static
+    public function setRateDate(\DateTimeImmutable $rateDate): void
     {
         $this->rateDate = $rateDate;
-
-        return $this;
-    }
-
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
-
-    public function setCreatedAt(?\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
-
-        return $this;
     }
 
     public function __toString(): string
     {
-        return null !== $this->getId() 
-            ? "{$this->getCurrencyName()}[{$this->getCurrencySymbol()}] - {$this->getRateDate()->format('Y-m-d')}" 
+        return null !== $this->getId()
+            ? "{$this->getCurrencyName()}[{$this->getCurrencySymbol()}] - {$this->getRateDate()->format('Y-m-d')}"
             : '';
     }
 }

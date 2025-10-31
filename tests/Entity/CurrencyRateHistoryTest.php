@@ -2,227 +2,243 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tourze\CurrencyManageBundle\Entity\CurrencyRateHistory;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class CurrencyRateHistoryTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(CurrencyRateHistory::class)]
+final class CurrencyRateHistoryTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new CurrencyRateHistory();
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        yield 'currencyCode' => ['currencyCode', 'USD'];
+        yield 'currencyName' => ['currencyName', '美元'];
+        yield 'currencySymbol' => ['currencySymbol', '$'];
+        yield 'flag' => ['flag', 'us'];
+        yield 'rateToCny' => ['rateToCny', 7.0];
+        yield 'rateDate' => ['rateDate', new \DateTimeImmutable()];
+        yield 'createTime' => ['createTime', new \DateTimeImmutable()];
+    }
+
     private CurrencyRateHistory $history;
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->history = new CurrencyRateHistory();
     }
 
-    public function test_getId_initiallyNull(): void
+    public function testGetIdInitiallyNull(): void
     {
         $this->assertNull($this->history->getId());
     }
 
-    public function test_setCurrencyCode_setsCurrencyCodeCorrectly(): void
+    public function testSetCurrencyCodeSetsCurrencyCodeCorrectly(): void
     {
         $code = 'USD';
 
-        $result = $this->history->setCurrencyCode($code);
+        $this->history->setCurrencyCode($code);
 
-        $this->assertSame($this->history, $result);
         $this->assertSame($code, $this->history->getCurrencyCode());
     }
 
-    public function test_getCurrencyCode_initiallyEmpty(): void
+    public function testGetCurrencyCodeInitiallyEmpty(): void
     {
         $this->assertSame('', $this->history->getCurrencyCode());
     }
 
-    public function test_setCurrencyName_setsCurrencyNameCorrectly(): void
+    public function testSetCurrencyNameSetsCurrencyNameCorrectly(): void
     {
         $name = '美元';
-        
-        $result = $this->history->setCurrencyName($name);
-        
-        $this->assertSame($this->history, $result);
+
+        $this->history->setCurrencyName($name);
+
         $this->assertSame($name, $this->history->getCurrencyName());
     }
 
-    public function test_getCurrencyName_initiallyEmpty(): void
+    public function testGetCurrencyNameInitiallyEmpty(): void
     {
         $this->assertSame('', $this->history->getCurrencyName());
     }
 
-    public function test_setCurrencySymbol_setsCurrencySymbolCorrectly(): void
+    public function testSetCurrencySymbolSetsCurrencySymbolCorrectly(): void
     {
         $symbol = '$';
-        
-        $result = $this->history->setCurrencySymbol($symbol);
-        
-        $this->assertSame($this->history, $result);
+
+        $this->history->setCurrencySymbol($symbol);
+
         $this->assertSame($symbol, $this->history->getCurrencySymbol());
     }
 
-    public function test_getCurrencySymbol_initiallyEmpty(): void
+    public function testGetCurrencySymbolInitiallyEmpty(): void
     {
         $this->assertSame('', $this->history->getCurrencySymbol());
     }
 
-    public function test_setFlag_setsFlagCorrectly(): void
+    public function testSetFlagSetsFlagCorrectly(): void
     {
         $flag = 'us';
-        
-        $result = $this->history->setFlag($flag);
-        
-        $this->assertSame($this->history, $result);
+
+        $this->history->setFlag($flag);
+
         $this->assertSame($flag, $this->history->getFlag());
     }
 
-    public function test_getFlag_initiallyNull(): void
+    public function testGetFlagInitiallyNull(): void
     {
         $this->assertNull($this->history->getFlag());
     }
 
-    public function test_setFlag_withNull(): void
+    public function testSetFlagWithNull(): void
     {
         $this->history->setFlag(null);
-        
+
         $this->assertNull($this->history->getFlag());
     }
 
-    public function test_setRateToCny_setsRateCorrectly(): void
+    public function testSetRateToCnySetsRateCorrectly(): void
     {
         $rate = 7.0;
-        
-        $result = $this->history->setRateToCny($rate);
-        
-        $this->assertSame($this->history, $result);
+
+        $this->history->setRateToCny($rate);
+
         $this->assertSame($rate, $this->history->getRateToCny());
     }
 
-    public function test_getRateToCny_initiallyZero(): void
+    public function testGetRateToCnyInitiallyZero(): void
     {
         $this->assertSame(0.0, $this->history->getRateToCny());
     }
 
-    public function test_setRateToCny_withZero(): void
+    public function testSetRateToCnyWithZero(): void
     {
         $this->history->setRateToCny(0.0);
-        
+
         $this->assertSame(0.0, $this->history->getRateToCny());
     }
 
-    public function test_setRateToCny_withNegativeValue(): void
+    public function testSetRateToCnyWithNegativeValue(): void
     {
         $rate = -1.5;
-        
+
         $this->history->setRateToCny($rate);
-        
+
         $this->assertSame($rate, $this->history->getRateToCny());
     }
 
-    public function test_setRateDate_setsDateCorrectly(): void
+    public function testSetRateDateSetsDateCorrectly(): void
     {
         $date = new \DateTimeImmutable('2025-01-01');
-        
-        $result = $this->history->setRateDate($date);
-        
-        $this->assertSame($this->history, $result);
-        $this->assertSame($date, $this->history->getRateDate());
-    }
 
-    public function test_setRateDate_withDateTimeImmutable(): void
-    {
-        $date = new \DateTimeImmutable('2025-01-01');
-        
         $this->history->setRateDate($date);
-        
+
         $this->assertSame($date, $this->history->getRateDate());
     }
 
-    public function test_setCreatedAt_setsTimeCorrectly(): void
+    public function testSetRateDateWithDateTimeImmutable(): void
+    {
+        $date = new \DateTimeImmutable('2025-01-01');
+
+        $this->history->setRateDate($date);
+
+        $this->assertSame($date, $this->history->getRateDate());
+    }
+
+    public function testSetCreateTimeSetsTimeCorrectly(): void
     {
         $time = new \DateTimeImmutable('2025-01-01 12:00:00');
-        
-        $result = $this->history->setCreatedAt($time);
-        
-        $this->assertSame($this->history, $result);
-        $this->assertSame($time, $this->history->getCreatedAt());
+
+        $this->history->setCreateTime($time);
+
+        $this->assertSame($time, $this->history->getCreateTime());
     }
 
-    public function test_getCreatedAt_initiallyNull(): void
+    public function testGetCreateTimeInitiallyNull(): void
     {
-        $this->assertNull($this->history->getCreatedAt());
+        $this->assertNull($this->history->getCreateTime());
     }
 
-    public function test_setCreatedAt_withNull(): void
+    public function testSetCreateTimeWithNull(): void
     {
-        $this->history->setCreatedAt(null);
-        
-        $this->assertNull($this->history->getCreatedAt());
+        $this->history->setCreateTime(null);
+
+        $this->assertNull($this->history->getCreateTime());
     }
 
-    public function test_toString_withoutId(): void
+    public function testToStringWithoutId(): void
     {
         $this->history->setCurrencyName('美元');
         $this->history->setCurrencySymbol('$');
         $this->history->setRateDate(new \DateTimeImmutable('2025-01-01'));
-        
+
         $result = $this->history->__toString();
-        
+
         $this->assertSame('', $result);
     }
 
-    public function test_toString_withValidData(): void
+    public function testToStringWithValidData(): void
     {
         // 使用反射设置ID，模拟有ID的情况
         $reflection = new \ReflectionClass($this->history);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($this->history, 1);
-        
+
         $this->history->setCurrencyName('美元');
         $this->history->setCurrencySymbol('$');
         $this->history->setRateDate(new \DateTimeImmutable('2025-01-01'));
-        
+
         $result = $this->history->__toString();
-        
+
         $this->assertSame('美元[$] - 2025-01-01', $result);
     }
 
-    public function test_toString_withEmptyStrings(): void
+    public function testToStringWithEmptyStrings(): void
     {
         $reflection = new \ReflectionClass($this->history);
         $idProperty = $reflection->getProperty('id');
         $idProperty->setAccessible(true);
         $idProperty->setValue($this->history, 1);
-        
+
         $this->history->setCurrencyName('');
         $this->history->setCurrencySymbol('');
         $this->history->setRateDate(new \DateTimeImmutable('2025-01-01'));
-        
+
         $result = $this->history->__toString();
-        
+
         $this->assertSame('[] - 2025-01-01', $result);
     }
 
-    public function test_fluentInterface_chainedCalls(): void
+    public function testFluentInterfaceChainedCalls(): void
     {
         $date = new \DateTimeImmutable('2025-01-01');
         $time = new \DateTimeImmutable('2025-01-01 12:00:00');
-        
-        $result = $this->history
-            ->setCurrencyCode('USD')
-            ->setCurrencyName('美元')
-            ->setCurrencySymbol('$')
-            ->setFlag('us')
-            ->setRateToCny(7.0)
-            ->setRateDate($date)
-            ->setCreatedAt($time);
-        
-        $this->assertSame($this->history, $result);
+
+        // 不再支持链式调用，需要分别调用每个setter
+        $this->history->setCurrencyCode('USD');
+        $this->history->setCurrencyName('美元');
+        $this->history->setCurrencySymbol('$');
+        $this->history->setFlag('us');
+        $this->history->setRateToCny(7.0);
+        $this->history->setRateDate($date);
+        $this->history->setCreateTime($time); // setCreateTime返回void
         $this->assertSame('USD', $this->history->getCurrencyCode());
         $this->assertSame('美元', $this->history->getCurrencyName());
         $this->assertSame('$', $this->history->getCurrencySymbol());
         $this->assertSame('us', $this->history->getFlag());
         $this->assertSame(7.0, $this->history->getRateToCny());
         $this->assertSame($date, $this->history->getRateDate());
-        $this->assertSame($time, $this->history->getCreatedAt());
+        $this->assertSame($time, $this->history->getCreateTime());
     }
-} 
+}

@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\DataFixtures;
 
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Common\DataFixtures\DependentFixtureInterface;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\DependencyInjection\Attribute\When;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Entity\Currency;
 
@@ -12,6 +15,8 @@ use Tourze\CurrencyManageBundle\Entity\Currency;
  * 预定义货币数据初始化
  * 创建常见的货币记录并关联到对应国家
  */
+#[When(env: 'test')]
+#[When(env: 'dev')]
 class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterface
 {
     public function load(ObjectManager $manager): void
@@ -43,6 +48,8 @@ class CurrencyCountryFixtures extends Fixture implements DependentFixtureInterfa
 
     /**
      * 获取货币-国家映射数据
+     *
+     * @return array<int, array{code: string, name: string, symbol?: string, countryCode: ?string}>
      */
     private function getCurrencyCountryMappings(): array
     {

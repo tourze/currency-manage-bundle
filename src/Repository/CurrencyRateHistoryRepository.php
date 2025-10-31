@@ -1,48 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Repository;
 
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 use Tourze\CurrencyManageBundle\Entity\CurrencyRateHistory;
+use Tourze\PHPUnitSymfonyKernelTest\Attribute\AsRepository;
 
 /**
  * @extends ServiceEntityRepository<CurrencyRateHistory>
- *
- * @method CurrencyRateHistory|null find($id, $lockMode = null, $lockVersion = null)
- * @method CurrencyRateHistory|null findOneBy(array $criteria, array $orderBy = null)
- * @method CurrencyRateHistory[]    findAll()
- * @method CurrencyRateHistory[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
+#[AsRepository(entityClass: CurrencyRateHistory::class)]
 class CurrencyRateHistoryRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, CurrencyRateHistory::class);
-    }
-
-    /**
-     * 保存历史汇率记录
-     */
-    public function save(CurrencyRateHistory $history, bool $flush = false): void
-    {
-        $this->getEntityManager()->persist($history);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
-    }
-
-    /**
-     * 删除历史汇率记录
-     */
-    public function remove(CurrencyRateHistory $history, bool $flush = false): void
-    {
-        $this->getEntityManager()->remove($history);
-
-        if ($flush) {
-            $this->getEntityManager()->flush();
-        }
     }
 
     /**
@@ -58,23 +33,29 @@ class CurrencyRateHistoryRepository extends ServiceEntityRepository
 
     /**
      * 根据货币代码查找历史汇率（按日期倒序）
+     *
+     * @return list<CurrencyRateHistory>
      */
     public function findByCurrencyCode(string $currencyCode, ?int $limit = null): array
     {
         $qb = $this->createQueryBuilder('h')
             ->where('h.currencyCode = :currencyCode')
             ->setParameter('currencyCode', $currencyCode)
-            ->orderBy('h.rateDate', 'DESC');
+            ->orderBy('h.rateDate', 'DESC')
+        ;
 
-        if ($limit !== null) {
+        if (null !== $limit) {
             $qb->setMaxResults($limit);
         }
 
+        /** @var list<CurrencyRateHistory> */
         return $qb->getQuery()->getResult();
     }
 
     /**
      * 根据日期范围查找历史汇率
+     *
+     * @return list<CurrencyRateHistory>
      */
     public function findByDateRange(\DateTimeInterface $startDate, \DateTimeInterface $endDate, ?string $currencyCode = null): array
     {
@@ -84,13 +65,16 @@ class CurrencyRateHistoryRepository extends ServiceEntityRepository
             ->setParameter('startDate', $startDate)
             ->setParameter('endDate', $endDate)
             ->orderBy('h.rateDate', 'DESC')
-            ->addOrderBy('h.currencyCode', 'ASC');
+            ->addOrderBy('h.currencyCode', 'ASC')
+        ;
 
-        if ($currencyCode !== null) {
+        if (null !== $currencyCode) {
             $qb->andWhere('h.currencyCode = :currencyCode')
-                ->setParameter('currencyCode', $currencyCode);
+                ->setParameter('currencyCode', $currencyCode)
+            ;
         }
 
+        /** @var list<CurrencyRateHistory> */
         return $qb->getQuery()->getResult();
     }
 
@@ -99,17 +83,22 @@ class CurrencyRateHistoryRepository extends ServiceEntityRepository
      */
     public function findLatestByCurrency(string $currencyCode): ?CurrencyRateHistory
     {
-        return $this->createQueryBuilder('h')
+        $result = $this->createQueryBuilder('h')
             ->where('h.currencyCode = :currencyCode')
             ->setParameter('currencyCode', $currencyCode)
             ->orderBy('h.rateDate', 'DESC')
             ->setMaxResults(1)
             ->getQuery()
-            ->getOneOrNullResult();
+            ->getOneOrNullResult()
+        ;
+
+        return $result instanceof CurrencyRateHistory ? $result : null;
     }
 
     /**
      * 获取所有货币在指定日期的汇率
+     *
+     * @return CurrencyRateHistory[]
      */
     public function findAllByDate(\DateTimeInterface $date): array
     {
@@ -121,29 +110,36 @@ class CurrencyRateHistoryRepository extends ServiceEntityRepository
      */
     public function deleteBeforeDate(\DateTimeInterface $date): int
     {
-        return $this->createQueryBuilder('h')
+        $result = $this->createQueryBuilder('h')
             ->delete()
             ->where('h.rateDate < :date')
             ->setParameter('date', $date)
             ->getQuery()
-            ->execute();
+            ->execute()
+        ;
+
+        return \is_int($result) ? $result : 0;
     }
 
     /**
      * 获取历史汇率统计信息
+     *
+     * @return array{totalRecords: int, totalCurrencies: int, earliestDate: \DateTimeInterface|null, latestDate: \DateTimeInterface|null}
      */
     public function getStatistics(): array
     {
         $qb = $this->createQueryBuilder('h');
-        
+
+        /** @var array{totalRecords: string|int, totalCurrencies: string|int, earliestDate: \DateTimeInterface|null, latestDate: \DateTimeInterface|null} $result */
         $result = $qb->select([
-                'COUNT(h.id) as totalRecords',
-                'COUNT(DISTINCT h.currencyCode) as totalCurrencies',
-                'MIN(h.rateDate) as earliestDate',
-                'MAX(h.rateDate) as latestDate'
-            ])
+            'COUNT(h.id) as totalRecords',
+            'COUNT(DISTINCT h.currencyCode) as totalCurrencies',
+            'MIN(h.rateDate) as earliestDate',
+            'MAX(h.rateDate) as latestDate',
+        ])
             ->getQuery()
-            ->getSingleResult();
+            ->getSingleResult()
+        ;
 
         return [
             'totalRecords' => (int) $result['totalRecords'],
@@ -154,10 +150,34 @@ class CurrencyRateHistoryRepository extends ServiceEntityRepository
     }
 
     /**
+     * 保存实体
+     */
+    public function save(CurrencyRateHistory $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->persist($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
+     * 删除实体
+     */
+    public function remove(CurrencyRateHistory $entity, bool $flush = true): void
+    {
+        $this->getEntityManager()->remove($entity);
+
+        if ($flush) {
+            $this->getEntityManager()->flush();
+        }
+    }
+
+    /**
      * 刷新所有待处理的更改
      */
     public function flush(): void
     {
         $this->getEntityManager()->flush();
     }
-} 
+}

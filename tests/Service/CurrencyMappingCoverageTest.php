@@ -2,58 +2,72 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Service;
 
-use PHPUnit\Framework\TestCase;
-use Tourze\CurrencyManageBundle\Repository\CountryRepository;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CurrencyManageBundle\Service\FlagService;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**
  * 货币映射覆盖率测试
  *
  * 注意：由于 getFlagCodeFromCurrency 方法已被删除，
  * 这些测试现在主要测试 FlagService 的基本功能
+ *
+ * @internal
  */
-class CurrencyMappingCoverageTest extends TestCase
+#[CoversClass(FlagService::class)]
+#[RunTestsInSeparateProcesses]
+final class CurrencyMappingCoverageTest extends AbstractIntegrationTestCase
 {
     private FlagService $flagService;
-    /** @var CountryRepository&\PHPUnit\Framework\MockObject\MockObject */
-    private $countryRepository;
 
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->countryRepository = $this->createMock(CountryRepository::class);
-        $this->flagService = new FlagService($this->countryRepository);
+        $this->flagService = self::getService(FlagService::class);
     }
 
-    public function test_flagServiceBasicFunctionality(): void
+    public function testFlagServiceHasRequiredMethods(): void
     {
-        // 测试 FlagService 的基本功能
-        $reflection = new \ReflectionClass($this->flagService);
+        $reflection = new \ReflectionClass(FlagService::class);
         $this->assertTrue($reflection->hasMethod('getFlagCodeFromCurrencyViaCountry'));
         $this->assertTrue($reflection->hasMethod('getFlagPathFromCurrency'));
         $this->assertTrue($reflection->hasMethod('getAvailableFlags'));
         $this->assertTrue($reflection->hasMethod('flagExists'));
     }
 
-    public function test_getFlagCodeFromCurrencyViaCountry_withEmptyResult(): void
+    public function testGetAvailableFlagsReturnsArray(): void
     {
-        // Mock 空的国家列表
-        $this->countryRepository->expects($this->once())
-            ->method('findCountriesWithCurrencies')
-            ->willReturn([]);
-
-        $result = $this->flagService->getFlagCodeFromCurrencyViaCountry('USD');
-        $this->assertNull($result);
+        $result = $this->flagService->getAvailableFlags();
+        $this->assertIsArray($result);
     }
 
-    public function test_getAvailableFlags_returnsArray(): void
-    {
-        $flags = $this->flagService->getAvailableFlags();
-        $this->assertNotNull($flags);
-    }
-
-    public function test_flagExists_returnsBool(): void
+    public function testFlagExistsReturnsBool(): void
     {
         $result = $this->flagService->flagExists('us');
-        $this->assertNotNull($result);
+        $this->assertIsBool($result);
+    }
+
+    public function testGetFlagCodeFromCurrencyViaCountry(): void
+    {
+        $result = $this->flagService->getFlagCodeFromCurrencyViaCountry('USD');
+
+        if (null !== $result) {
+            $this->assertIsString($result);
+            $this->assertNotEmpty($result);
+        } else {
+            $this->assertTrue(true, 'No flag code found for USD, which is acceptable');
+        }
+    }
+
+    public function testGetFlagPathFromCurrency(): void
+    {
+        $result = $this->flagService->getFlagPathFromCurrency('USD');
+
+        if (null !== $result) {
+            $this->assertIsString($result);
+            $this->assertNotEmpty($result);
+        } else {
+            $this->assertTrue(true, 'No flag path found for USD, which is acceptable');
+        }
     }
 }

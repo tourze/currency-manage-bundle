@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Service;
 
 use Knp\Menu\ItemInterface;
@@ -12,10 +14,10 @@ use Tourze\EasyAdminMenuBundle\Service\MenuProviderInterface;
 /**
  * 货币管理菜单服务
  */
-class AdminMenu implements MenuProviderInterface
+readonly class AdminMenu implements MenuProviderInterface
 {
     public function __construct(
-        private readonly LinkGeneratorInterface $linkGenerator,
+        private LinkGeneratorInterface $linkGenerator,
     ) {
     }
 
@@ -27,19 +29,26 @@ class AdminMenu implements MenuProviderInterface
 
         $currencyMenu = $item->getChild('货币管理');
 
+        if (null === $currencyMenu) {
+            return;
+        }
+
         // 国家管理菜单
         $currencyMenu->addChild('国家管理')
             ->setUri($this->linkGenerator->getCurdListPage(Country::class))
-            ->setAttribute('icon', 'fas fa-globe');
+            ->setAttribute('icon', 'fas fa-globe')
+        ;
 
         // 货币管理菜单
         $currencyMenu->addChild('货币列表')
             ->setUri($this->linkGenerator->getCurdListPage(Currency::class))
-            ->setAttribute('icon', 'fas fa-coins');
+            ->setAttribute('icon', 'fas fa-coins')
+        ;
 
         // 历史汇率管理菜单
         $currencyMenu->addChild('历史汇率')
             ->setUri($this->linkGenerator->getCurdListPage(CurrencyRateHistory::class))
-            ->setAttribute('icon', 'fas fa-chart-line');
+            ->setAttribute('icon', 'fas fa-chart-line')
+        ;
     }
 }

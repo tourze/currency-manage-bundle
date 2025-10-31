@@ -2,88 +2,55 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\Extension;
 use Tourze\CurrencyManageBundle\DependencyInjection\CurrencyManageExtension;
+use Tourze\PHPUnitSymfonyUnitTest\AbstractDependencyInjectionExtensionTestCase;
 
-class CurrencyManageExtensionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(CurrencyManageExtension::class)]
+final class CurrencyManageExtensionTest extends AbstractDependencyInjectionExtensionTestCase
 {
     private CurrencyManageExtension $extension;
+
     private ContainerBuilder $container;
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->extension = new CurrencyManageExtension();
         $this->container = new ContainerBuilder();
+        $this->container->setParameter('kernel.environment', 'test');
     }
 
-    public function test_instantiation_createsExtension(): void
+    public function testLoadWithEmptyConfigs(): void
     {
-        $this->assertInstanceOf(CurrencyManageExtension::class, $this->extension);
+        $this->extension->load([], $this->container);
+
+        // 应该没有异常抛出，容器应该仍然可用
+        $this->assertTrue(
+            $this->container->hasDefinition('Tourze\CurrencyManageBundle\Service\CurrencyService')
+            || $this->container->hasAlias('Tourze\CurrencyManageBundle\Service\CurrencyService')
+        );
     }
 
-    public function test_inheritance_extendsExtension(): void
+    public function testExtensionAlias(): void
     {
-        $this->assertInstanceOf(Extension::class, $this->extension);
+        // Symfony Extension 的默认别名是类名去掉 Extension 后缀并转换为下划线格式
+        $this->assertEquals('currency_manage', $this->extension->getAlias());
     }
 
-    public function test_load_withEmptyConfigs(): void
+    public function testConfigurationDirectoryExists(): void
     {
-        $configs = [];
-        
-        $this->extension->load($configs, $this->container);
-        
-        // 验证没有抛出异常，说明配置加载成功
-        $this->assertTrue(true);
+        $configDir = __DIR__ . '/../../src/Resources/config';
+        $this->assertDirectoryExists($configDir);
     }
 
-    public function test_load_withMultipleConfigs(): void
+    public function testServicesYamlFileExists(): void
     {
-        $configs = [
-            ['some_config' => 'value1'],
-            ['another_config' => 'value2'],
-        ];
-        
-        $this->extension->load($configs, $this->container);
-        
-        // 验证没有抛出异常，说明配置加载成功
-        $this->assertTrue(true);
+        $servicesFile = __DIR__ . '/../../src/Resources/config/services.yaml';
+        $this->assertFileExists($servicesFile);
     }
-
-    public function test_getAlias_returnsCorrectAlias(): void
-    {
-        $expectedAlias = 'currency_manage';
-        
-        $result = $this->extension->getAlias();
-        
-        $this->assertSame($expectedAlias, $result);
-    }
-
-    public function test_load_registersServices(): void
-    {
-        $configs = [];
-        
-        $this->extension->load($configs, $this->container);
-        
-        // 验证服务配置是否被加载
-        // 由于使用了resource配置，服务会被自动注册
-        $serviceIds = $this->container->getServiceIds();
-        
-        // 验证至少有一些服务被注册了
-        $this->assertNotEmpty($serviceIds);
-    }
-
-    public function test_load_withContainerBuilder(): void
-    {
-        $configs = [];
-        $initialServiceCount = count($this->container->getServiceIds());
-        
-        $this->extension->load($configs, $this->container);
-        
-        $finalServiceCount = count($this->container->getServiceIds());
-        
-        // 加载后服务数量应该增加
-        $this->assertGreaterThanOrEqual($initialServiceCount, $finalServiceCount);
-    }
-} 
+}

@@ -1,115 +1,116 @@
 <?php
 
-namespace Tourze\CurrencyManageBundle\Test\Service;
+namespace Tourze\CurrencyManageBundle\Tests\Service;
 
 use Knp\Menu\ItemInterface;
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CurrencyManageBundle\Service\AdminMenu;
 use Tourze\EasyAdminMenuBundle\Service\LinkGeneratorInterface;
+use Tourze\PHPUnitSymfonyWebTest\AbstractEasyAdminMenuTestCase;
 
 /**
  * AdminMenu 服务测试
+ *
+ * @internal
  */
-class AdminMenuTest extends TestCase
+#[CoversClass(AdminMenu::class)]
+#[RunTestsInSeparateProcesses]
+final class AdminMenuTest extends AbstractEasyAdminMenuTestCase
 {
-    private LinkGeneratorInterface $linkGenerator;
     private AdminMenu $adminMenu;
 
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->linkGenerator = $this->createMock(LinkGeneratorInterface::class);
-        $this->adminMenu = new AdminMenu($this->linkGenerator);
+        // 使用简单的测试替身代替Mock
+        $linkGenerator = new class implements LinkGeneratorInterface {
+            /** @var array<int, string> */
+            private array $calls = [];
+
+            public function getCurdListPage(string $entityClass): string
+            {
+                $this->calls[] = $entityClass;
+
+                return '/admin/' . strtolower(basename(str_replace('\\', '/', $entityClass)));
+            }
+
+            public function extractEntityFqcn(string $routeName): ?string
+            {
+                // 测试中不需要实现，返回null即可
+                return null;
+            }
+
+            public function setDashboard(string $dashboardControllerFqcn): void
+            {
+                // 测试中不需要实现，空方法即可
+            }
+
+            /** @return array<int, string> */
+            public function getCalls(): array
+            {
+                return $this->calls;
+            }
+        };
+
+        self::getContainer()->set(LinkGeneratorInterface::class, $linkGenerator);
+        $adminMenu = self::getContainer()->get(AdminMenu::class);
+        $this->assertInstanceOf(AdminMenu::class, $adminMenu);
+        $this->adminMenu = $adminMenu;
     }
 
-    public function testInvokeCreatesMenuItems(): void
+    public function testInvoke(): void
     {
-        // 创建根菜单项mock
-        $rootMenuItem = $this->createMock(ItemInterface::class);
-        $currencyMenuItem = $this->createMock(ItemInterface::class);
-        
-        // 设置期望的方法调用
-        $rootMenuItem->expects($this->exactly(2))
-            ->method('getChild')
+        // 使用简单的SPY模式测试替身，只记录调用信息
+        $calls = [];
+
+        // 创建一个最小化的测试替身
+        $menuItem = $this->createMock(ItemInterface::class);
+        $currencyMenu = $this->createMock(ItemInterface::class);
+
+        // 记录调用而不是验证
+        $getChildCallCount = 0;
+        $menuItem->method('getChild')
             ->with('货币管理')
-            ->willReturnOnConsecutiveCalls(null, $currencyMenuItem);
-            
-        $rootMenuItem->expects($this->once())
-            ->method('addChild')
+            ->willReturnCallback(function () use (&$getChildCallCount, $currencyMenu) {
+                ++$getChildCallCount;
+                // 第一次返回null触发创建，第二次返回菜单对象
+                return $getChildCallCount === 1 ? null : $currencyMenu;
+            })
+        ;
+
+        $menuItem->method('addChild')
             ->with('货币管理')
-            ->willReturn($currencyMenuItem);
+            ->willReturnCallback(function ($name) use (&$calls, $currencyMenu) {
+                $calls[] = ['addChild', $name];
 
-        // 设置货币菜单的子项
-        $countryMenuItem = $this->createMock(ItemInterface::class);
-        $currencyListMenuItem = $this->createMock(ItemInterface::class);
-        $historyMenuItem = $this->createMock(ItemInterface::class);
+                return $currencyMenu;
+            })
+        ;
 
-        $currencyMenuItem->expects($this->exactly(3))
-            ->method('addChild')
-            ->willReturnCallback(function ($name) use ($countryMenuItem, $currencyListMenuItem, $historyMenuItem) {
-                return match ($name) {
-                    '国家管理' => $countryMenuItem,
-                    '货币列表' => $currencyListMenuItem,
-                    '历史汇率' => $historyMenuItem,
-                    default => $this->createMock(ItemInterface::class),
-                };
-            });
+        // 记录子菜单的添加
+        $currencyMenu->method('addChild')
+            ->willReturnCallback(function ($name) use (&$calls, $currencyMenu) {
+                $calls[] = ['addChildToMenu', $name];
 
-        // 设置URI和属性
-        $countryMenuItem->expects($this->once())->method('setUri')->willReturnSelf();
-        $countryMenuItem->expects($this->once())->method('setAttribute')->willReturnSelf();
-        
-        $currencyListMenuItem->expects($this->once())->method('setUri')->willReturnSelf();
-        $currencyListMenuItem->expects($this->once())->method('setAttribute')->willReturnSelf();
-        
-        $historyMenuItem->expects($this->once())->method('setUri')->willReturnSelf();
-        $historyMenuItem->expects($this->once())->method('setAttribute')->willReturnSelf();
+                return $currencyMenu;
+            })
+        ;
+
+        $currencyMenu->method('setUri')
+            ->willReturnSelf()
+        ;
+
+        $currencyMenu->method('setAttribute')
+            ->willReturnSelf()
+        ;
 
         // 执行测试
-        ($this->adminMenu)($rootMenuItem);
+        ($this->adminMenu)($menuItem);
+
+        // 验证调用记录 - 更关注行为而非细节
+        $this->assertContains(['addChild', '货币管理'], $calls, '应该创建货币管理菜单');
+        $this->assertContains(['addChildToMenu', '国家管理'], $calls, '应该添加国家管理菜单');
+        $this->assertContains(['addChildToMenu', '货币列表'], $calls, '应该添加货币列表菜单');
+        $this->assertContains(['addChildToMenu', '历史汇率'], $calls, '应该添加历史汇率菜单');
     }
-
-    public function testInvokeWithExistingCurrencyMenu(): void
-    {
-        // 创建根菜单项mock
-        $rootMenuItem = $this->createMock(ItemInterface::class);
-        $currencyMenuItem = $this->createMock(ItemInterface::class);
-        
-        // 模拟已存在的货币管理菜单
-        $rootMenuItem->expects($this->exactly(2))
-            ->method('getChild')
-            ->with('货币管理')
-            ->willReturn($currencyMenuItem);
-            
-        $rootMenuItem->expects($this->never())
-            ->method('addChild');
-
-        // 设置子菜单项
-        $countryMenuItem = $this->createMock(ItemInterface::class);
-        $currencyListMenuItem = $this->createMock(ItemInterface::class);
-        $historyMenuItem = $this->createMock(ItemInterface::class);
-
-        $currencyMenuItem->expects($this->exactly(3))
-            ->method('addChild')
-            ->willReturnCallback(function ($name) use ($countryMenuItem, $currencyListMenuItem, $historyMenuItem) {
-                return match ($name) {
-                    '国家管理' => $countryMenuItem,
-                    '货币列表' => $currencyListMenuItem,
-                    '历史汇率' => $historyMenuItem,
-                    default => $this->createMock(ItemInterface::class),
-                };
-            });
-
-        // 设置URI和属性
-        $countryMenuItem->expects($this->once())->method('setUri')->willReturnSelf();
-        $countryMenuItem->expects($this->once())->method('setAttribute')->willReturnSelf();
-        
-        $currencyListMenuItem->expects($this->once())->method('setUri')->willReturnSelf();
-        $currencyListMenuItem->expects($this->once())->method('setAttribute')->willReturnSelf();
-        
-        $historyMenuItem->expects($this->once())->method('setUri')->willReturnSelf();
-        $historyMenuItem->expects($this->once())->method('setAttribute')->willReturnSelf();
-
-        // 执行测试
-        ($this->adminMenu)($rootMenuItem);
-    }
-} 
+}

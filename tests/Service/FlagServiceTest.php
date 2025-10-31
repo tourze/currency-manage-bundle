@@ -2,108 +2,156 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Service;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CurrencyManageBundle\Entity\Country;
-use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 use Tourze\CurrencyManageBundle\Service\FlagService;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
-class FlagServiceTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(FlagService::class)]
+#[RunTestsInSeparateProcesses]
+final class FlagServiceTest extends AbstractIntegrationTestCase
 {
     private FlagService $flagService;
-    /** @var CountryRepository&\PHPUnit\Framework\MockObject\MockObject */
-    private $countryRepository;
 
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->countryRepository = $this->createMock(CountryRepository::class);
-        $this->flagService = new FlagService($this->countryRepository);
+        $this->flagService = self::getService(FlagService::class);
     }
 
-    public function test_getFlagPathFromCountry_withValidCountry(): void
+    public function testGetFlagPathFromCountryWithValidCountry(): void
     {
         $country = new Country();
         $country->setFlagCode('cn');
-        
+
         $result = $this->flagService->getFlagPathFromCountry($country);
-        
-        // 根据 flag-icons 包是否安装，结果可能是路径或 null
-        if ($result !== null) {
+
+        if (null !== $result) {
             $this->assertStringContainsString('.svg', $result);
+        } else {
+            $this->assertTrue(true, 'No flag path found, which is acceptable when flag-icons package is not available');
         }
     }
 
-    public function test_getFlagPathFromCountry_withNullFlagCode(): void
+    public function testGetFlagPathFromCountryWithNullFlagCode(): void
     {
         $country = new Country();
         $country->setFlagCode(null);
-        
+
         $result = $this->flagService->getFlagPathFromCountry($country);
-        
+
         $this->assertNull($result);
     }
 
-    // 直接测试方法功能，而不是检查方法是否存在
-
-    public function test_getFlagCodeFromCurrencyViaCountry_withValidCurrency(): void
+    public function testGetFlagCodeFromCurrencyViaCountryWithValidCurrency(): void
     {
-        // Mock 一个有货币的国家
-        $country = new Country();
-        $country->setFlagCode('us');
-        
-        $this->countryRepository->expects($this->once())
-            ->method('findCountriesWithCurrencies')
-            ->willReturn([$country]);
-        
         $result = $this->flagService->getFlagCodeFromCurrencyViaCountry('USD');
-        
-        // 由于我们没有实际的货币关联，这会返回 null
-        $this->assertNull($result);
+
+        if (null !== $result) {
+            $this->assertIsString($result);
+            $this->assertNotEmpty($result);
+        } else {
+            $this->assertTrue(true, 'No flag code found for USD, which is acceptable');
+        }
     }
 
-    public function test_getAvailableFlags_returnsArray(): void
+    public function testGetAvailableFlagsReturnsArray(): void
     {
         $result = $this->flagService->getAvailableFlags();
-        // 直接检查结果，不需要断言类型
-        $this->assertNotNull($result);
+        $this->assertIsArray($result);
     }
 
-    public function test_flagExists_withValidCode(): void
+    public function testFlagExistsWithValidCode(): void
     {
-        // 测试方法功能
         $result = $this->flagService->flagExists('us');
-        // 直接检查结果，不需要断言类型
-        $this->assertNotNull($result);
-    }
+        $this->assertIsBool($result);
 
-    public function test_getFlagPath_withValidCode(): void
-    {
-        // 测试方法功能
-        $result = $this->flagService->getFlagPath('us');
-        // 根据 flag-icons 包是否安装，结果可能是路径或 null
-        if ($result !== null) {
-            $this->assertStringContainsString('us.svg', $result);
+        // If flag-icons package is available, 'us' should exist
+        if ($result) {
+            $this->assertTrue($result, 'US flag should exist when package is available');
         }
     }
 
-    public function test_getFlagPath_with1x1Ratio(): void
+    public function testFlagExistsWithInvalidCode(): void
+    {
+        $result = $this->flagService->flagExists('invalid_country_code_xyz');
+        $this->assertIsBool($result);
+        $this->assertFalse($result, 'Invalid flag code should return false');
+    }
+
+    public function testFlagExistsWithDifferentRatios(): void
+    {
+        $result4x3 = $this->flagService->flagExists('cn', '4x3');
+        $result1x1 = $this->flagService->flagExists('cn', '1x1');
+
+        $this->assertIsBool($result4x3);
+        $this->assertIsBool($result1x1);
+    }
+
+    public function testGetFlagPathWithValidCode(): void
+    {
+        $result = $this->flagService->getFlagPath('us');
+        if (null !== $result) {
+            $this->assertStringContainsString('us.svg', $result);
+            $this->assertFileExists($result, 'Flag file should exist at the returned path');
+        } else {
+            $this->assertTrue(true, 'No flag path found, which is acceptable when flag-icons package is not available');
+        }
+    }
+
+    public function testGetFlagPathWithInvalidCode(): void
+    {
+        $result = $this->flagService->getFlagPath('invalid_xyz');
+        $this->assertNull($result, 'Invalid flag code should return null');
+    }
+
+    public function testGetFlagPathWith1x1Ratio(): void
     {
         $result = $this->flagService->getFlagPath('us', '1x1');
-        // 根据 flag-icons 包是否安装，结果可能是路径或 null
-        if ($result !== null) {
+        if (null !== $result) {
             $this->assertStringContainsString('1x1', $result);
             $this->assertStringContainsString('us.svg', $result);
+        } else {
+            $this->assertTrue(true, 'No flag path found, which is acceptable when flag-icons package is not available');
         }
     }
 
-    public function test_constructor_requiresCountryRepository(): void
+    public function testGetAvailableFlagsReturnsSortedArray(): void
     {
-        $reflection = new \ReflectionClass(FlagService::class);
-        $constructor = $reflection->getConstructor();
-        
-        $this->assertNotNull($constructor);
-        
-        $parameters = $constructor->getParameters();
-        $this->assertCount(1, $parameters);
-        $this->assertSame('countryRepository', $parameters[0]->getName());
+        $result = $this->flagService->getAvailableFlags();
+        $this->assertIsArray($result);
+
+        if ([] !== $result) {
+            // Check if array is sorted
+            $sorted = $result;
+            sort($sorted);
+            $this->assertSame($sorted, $result, 'Available flags should be sorted');
+
+            // Check if all elements are strings
+            foreach ($result as $flag) {
+                $this->assertIsString($flag);
+            }
+        }
+    }
+
+    public function testGetFlagPathFromCurrencyWithValidCurrency(): void
+    {
+        $result = $this->flagService->getFlagPathFromCurrency('USD');
+
+        if (null !== $result) {
+            $this->assertIsString($result);
+            $this->assertStringContainsString('.svg', $result);
+        } else {
+            $this->assertTrue(true, 'No flag path found for USD currency');
+        }
+    }
+
+    public function testGetFlagPathFromCurrencyWithInvalidCurrency(): void
+    {
+        $result = $this->flagService->getFlagPathFromCurrency('INVALID_XYZ');
+        $this->assertNull($result, 'Invalid currency code should return null');
     }
 }

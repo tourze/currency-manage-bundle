@@ -2,128 +2,146 @@
 
 namespace Tourze\CurrencyManageBundle\Tests\Entity;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Entity\Currency;
 use Tourze\GBT2659\Alpha2Code;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 
-class CountryTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(Country::class)]
+final class CountryTest extends AbstractEntityTestCase
 {
+    protected function createEntity(): object
+    {
+        return new Country();
+    }
+
+    /**
+     * @return iterable<string, array{0: string, 1: mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        yield 'code' => ['code', 'CN'];
+        yield 'name' => ['name', '中国'];
+        yield 'flagCode' => ['flagCode', 'cn'];
+        yield 'valid' => ['valid', true];
+        yield 'createTime' => ['createTime', new \DateTimeImmutable()];
+        yield 'updateTime' => ['updateTime', new \DateTimeImmutable()];
+    }
+
     private Country $country;
 
     protected function setUp(): void
     {
+        parent::setUp();
         $this->country = new Country();
     }
 
-    public function test_getId_initiallyNull(): void
+    public function testGetIdInitiallyNull(): void
     {
         $this->assertNull($this->country->getId());
     }
 
-    public function test_setCode_setsCodeCorrectly(): void
+    public function testSetCodeSetsCodeCorrectly(): void
     {
         $code = 'CN';
 
-        $result = $this->country->setCode($code);
+        $this->country->setCode($code);
 
-        $this->assertSame($this->country, $result);
         $this->assertSame($code, $this->country->getCode());
     }
 
-    public function test_getCode_initiallyEmpty(): void
+    public function testGetCodeInitiallyEmpty(): void
     {
         $this->assertSame('', $this->country->getCode());
     }
 
-    public function test_setName_setsNameCorrectly(): void
+    public function testSetNameSetsNameCorrectly(): void
     {
         $name = '中国';
 
-        $result = $this->country->setName($name);
+        $this->country->setName($name);
 
-        $this->assertSame($this->country, $result);
         $this->assertSame($name, $this->country->getName());
     }
 
-    public function test_getName_initiallyEmpty(): void
+    public function testGetNameInitiallyEmpty(): void
     {
         $this->assertSame('', $this->country->getName());
     }
 
-    public function test_setFlagCode_setsFlagCodeCorrectly(): void
+    public function testSetFlagCodeSetsFlagCodeCorrectly(): void
     {
         $flagCode = 'cn';
 
-        $result = $this->country->setFlagCode($flagCode);
+        $this->country->setFlagCode($flagCode);
 
-        $this->assertSame($this->country, $result);
         $this->assertSame($flagCode, $this->country->getFlagCode());
     }
 
-    public function test_getFlagCode_initiallyNull(): void
+    public function testGetFlagCodeInitiallyNull(): void
     {
         $this->assertNull($this->country->getFlagCode());
     }
 
-    public function test_setFlagCode_withNull(): void
+    public function testSetFlagCodeWithNull(): void
     {
         $this->country->setFlagCode(null);
 
         $this->assertNull($this->country->getFlagCode());
     }
 
-    public function test_setValid_setsValidCorrectly(): void
+    public function testSetValidSetsValidCorrectly(): void
     {
-        $result = $this->country->setValid(false);
+        $this->country->setValid(false);
 
-        $this->assertSame($this->country, $result);
         $this->assertFalse($this->country->isValid());
     }
 
-    public function test_isValid_initiallyTrue(): void
+    public function testIsValidInitiallyTrue(): void
     {
         $this->assertTrue($this->country->isValid());
     }
 
-    public function test_setCreateTime_setsTimeCorrectly(): void
+    public function testSetCreateTimeSetsTimeCorrectly(): void
     {
         $time = new \DateTimeImmutable('2025-01-01 12:00:00');
 
-        $result = $this->country->setCreateTime($time);
+        $this->country->setCreateTime($time);
 
-        $this->assertSame($this->country, $result);
         $this->assertSame($time, $this->country->getCreateTime());
     }
 
-    public function test_getCreateTime_initiallyNull(): void
+    public function testGetCreateTimeInitiallyNull(): void
     {
         $this->assertNull($this->country->getCreateTime());
     }
 
-    public function test_setUpdateTime_setsTimeCorrectly(): void
+    public function testSetUpdateTimeSetsTimeCorrectly(): void
     {
         $time = new \DateTimeImmutable('2025-01-01 12:00:00');
 
-        $result = $this->country->setUpdateTime($time);
+        $this->country->setUpdateTime($time);
 
-        $this->assertSame($this->country, $result);
         $this->assertSame($time, $this->country->getUpdateTime());
     }
 
-    public function test_getUpdateTime_initiallyNull(): void
+    public function testGetUpdateTimeInitiallyNull(): void
     {
         $this->assertNull($this->country->getUpdateTime());
     }
 
-    public function test_getCurrencies_initiallyEmpty(): void
+    public function testGetCurrenciesInitiallyEmpty(): void
     {
         $currencies = $this->country->getCurrencies();
 
         $this->assertCount(0, $currencies);
     }
 
-    public function test_addCurrency_addsCurrencyCorrectly(): void
+    public function testAddCurrencyAddsCurrencyCorrectly(): void
     {
         $currency = new Currency();
 
@@ -134,7 +152,7 @@ class CountryTest extends TestCase
         $this->assertSame($this->country, $currency->getCountry());
     }
 
-    public function test_addCurrency_doesNotAddDuplicate(): void
+    public function testAddCurrencyDoesNotAddDuplicate(): void
     {
         $currency = new Currency();
 
@@ -144,7 +162,7 @@ class CountryTest extends TestCase
         $this->assertCount(1, $this->country->getCurrencies());
     }
 
-    public function test_removeCurrency_removesCurrencyCorrectly(): void
+    public function testRemoveCurrencyRemovesCurrencyCorrectly(): void
     {
         $currency = new Currency();
         $this->country->addCurrency($currency);
@@ -156,7 +174,7 @@ class CountryTest extends TestCase
         $this->assertNull($currency->getCountry());
     }
 
-    public function test_removeCurrency_withNonExistentCurrency(): void
+    public function testRemoveCurrencyWithNonExistentCurrency(): void
     {
         $currency = new Currency();
 
@@ -166,7 +184,7 @@ class CountryTest extends TestCase
         $this->assertCount(0, $this->country->getCurrencies());
     }
 
-    public function test_fromAlpha2Code_createsCountryCorrectly(): void
+    public function testFromAlpha2CodeCreatesCountryCorrectly(): void
     {
         $alpha2Code = Alpha2Code::CN;
 
@@ -177,7 +195,7 @@ class CountryTest extends TestCase
         $this->assertSame('cn', $country->getFlagCode());
     }
 
-    public function test_getAlpha2Code_returnsCorrectEnum(): void
+    public function testGetAlpha2CodeReturnsCorrectEnum(): void
     {
         $this->country->setCode('CN');
 
@@ -186,7 +204,7 @@ class CountryTest extends TestCase
         $this->assertSame(Alpha2Code::CN, $alpha2Code);
     }
 
-    public function test_getAlpha2Code_withInvalidCode(): void
+    public function testGetAlpha2CodeWithInvalidCode(): void
     {
         $this->country->setCode('INVALID');
 
@@ -195,7 +213,7 @@ class CountryTest extends TestCase
         $this->assertNull($alpha2Code);
     }
 
-    public function test_toString_withoutId(): void
+    public function testToStringWithoutId(): void
     {
         $this->country->setName('中国');
         $this->country->setCode('CN');
@@ -205,7 +223,7 @@ class CountryTest extends TestCase
         $this->assertSame('', $result);
     }
 
-    public function test_toString_withValidData(): void
+    public function testToStringWithValidData(): void
     {
         // 使用反射设置ID，模拟有ID的情况
         $reflection = new \ReflectionClass($this->country);
@@ -221,20 +239,18 @@ class CountryTest extends TestCase
         $this->assertSame('中国[CN]', $result);
     }
 
-    public function test_fluentInterface_chainedCalls(): void
+    public function testFluentInterfaceChainedCalls(): void
     {
         $createTime = new \DateTimeImmutable('2025-01-01 10:00:00');
         $updateTime = new \DateTimeImmutable('2025-01-01 12:00:00');
 
-        $result = $this->country
-            ->setCode('US')
-            ->setName('美国')
-            ->setFlagCode('us')
-            ->setValid(true)
-            ->setCreateTime($createTime)
-            ->setUpdateTime($updateTime);
-
-        $this->assertSame($this->country, $result);
+        // 不再支持链式调用，需要分别调用每个setter
+        $this->country->setCode('US');
+        $this->country->setName('美国');
+        $this->country->setFlagCode('us');
+        $this->country->setValid(true);
+        $this->country->setCreateTime($createTime);
+        $this->country->setUpdateTime($updateTime);
         $this->assertSame('US', $this->country->getCode());
         $this->assertSame('美国', $this->country->getName());
         $this->assertSame('us', $this->country->getFlagCode());

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Controller\Admin;
 
 use EasyCorp\Bundle\EasyAdminBundle\Attribute\AdminCrud;
@@ -17,14 +19,18 @@ use EasyCorp\Bundle\EasyAdminBundle\Filter\DateTimeFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\EntityFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\NumericFilter;
 use EasyCorp\Bundle\EasyAdminBundle\Filter\TextFilter;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
 use Tourze\CurrencyManageBundle\Entity\Country;
 use Tourze\CurrencyManageBundle\Entity\Currency;
 
 /**
  * 货币管理控制器
+ *
+ * @extends AbstractCrudController<Currency>
  */
 #[AdminCrud(routePath: '/currency/currency', routeName: 'currency_currency')]
-class CurrencyCrudController extends AbstractCrudController
+#[Autoconfigure(public: true)]
+final class CurrencyCrudController extends AbstractCrudController
 {
     public static function getEntityFqcn(): string
     {
@@ -42,26 +48,31 @@ class CurrencyCrudController extends AbstractCrudController
             ->setPageTitle('detail', '货币详情')
             ->setHelp('index', '管理系统中的货币信息，包括货币代码、名称、符号和汇率等')
             ->setDefaultSort(['id' => 'DESC'])
-            ->setSearchFields(['name', 'code', 'symbol']);
+            ->setSearchFields(['name', 'code', 'symbol'])
+        ;
     }
 
     public function configureFields(string $pageName): iterable
     {
         yield IdField::new('id', 'ID')
             ->setMaxLength(9999)
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
 
         yield TextField::new('name', '货币名称')
             ->setRequired(true)
-            ->setHelp('货币的中文名称，如：人民币、美元等');
+            ->setHelp('货币的中文名称，如：人民币、美元等')
+        ;
 
         yield TextField::new('code', '货币代码')
             ->setRequired(true)
-            ->setHelp('国际标准货币代码，如：CNY、USD、EUR等');
+            ->setHelp('国际标准货币代码，如：CNY、USD、EUR等')
+        ;
 
         yield TextField::new('symbol', '货币符号')
             ->setRequired(true)
-            ->setHelp('货币符号标识，如：¥、$、€等');
+            ->setHelp('货币符号标识，如：¥、$、€等')
+        ;
 
         yield AssociationField::new('country', '所属国家')
             ->setHelp('该货币所属的国家或地区')
@@ -70,23 +81,27 @@ class CurrencyCrudController extends AbstractCrudController
                 if ($value instanceof Country) {
                     return $value->getName() . ' [' . $value->getCode() . ']';
                 }
+
                 return $value;
-            });
+            })
+        ;
 
         yield NumberField::new('rateToCny', '对人民币汇率')
             ->setNumDecimals(6)
-            ->setHelp('该货币兑换人民币的汇率，如1美元=7.2人民币则填写7.2');
+            ->setHelp('该货币兑换人民币的汇率，如1美元=7.2人民币则填写7.2')
+        ;
 
         yield DateTimeField::new('updateTime', '汇率更新时间')
             ->setFormat('yyyy-MM-dd HH:mm:ss')
-            ->hideOnForm();
+            ->hideOnForm()
+        ;
     }
 
     public function configureActions(Actions $actions): Actions
     {
         return $actions
             ->add(Crud::PAGE_INDEX, Action::DETAIL)
-            ->reorder(Crud::PAGE_INDEX, [Action::DETAIL, Action::EDIT, Action::DELETE]);
+        ;
     }
 
     public function configureFilters(Filters $filters): Filters
@@ -97,6 +112,7 @@ class CurrencyCrudController extends AbstractCrudController
             ->add(TextFilter::new('symbol', '货币符号'))
             ->add(EntityFilter::new('country', '所属国家'))
             ->add(NumericFilter::new('rateToCny', '对人民币汇率'))
-            ->add(DateTimeFilter::new('updateTime', '汇率更新时间'));
+            ->add(DateTimeFilter::new('updateTime', '汇率更新时间'))
+        ;
     }
 }

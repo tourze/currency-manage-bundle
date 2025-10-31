@@ -1,21 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Tourze\CurrencyManageBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\CurrencyManageBundle\Repository\CountryRepository;
 use Tourze\DoctrineIndexedBundle\Attribute\IndexColumn;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\GBT2659\Alpha2Code;
 
 #[ORM\Entity(repositoryClass: CountryRepository::class)]
-#[ORM\Table(name: 'starhome_country', options: ["comment" => '国家管理'])]
+#[ORM\Table(name: 'starhome_country', options: ['comment' => '国家管理'])]
 #[ORM\UniqueConstraint(name: 'uniq_country_code', columns: ['code'])]
 class Country implements \Stringable
 {
     use TimestampableAware;
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(options: ['comment' => '主键ID'])]
@@ -23,18 +27,26 @@ class Country implements \Stringable
 
     #[IndexColumn]
     #[ORM\Column(length: 2, options: ['comment' => '国家代码（ISO 3166-1 alpha-2）'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 2)]
     private string $code = '';
 
     #[ORM\Column(length: 64, options: ['comment' => '国家名称'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 64)]
     private string $name = '';
 
     #[ORM\Column(length: 8, nullable: true, options: ['comment' => '国旗代码'])]
+    #[Assert\Length(max: 8)]
     private ?string $flagCode = null;
 
     #[ORM\Column(options: ['comment' => '是否有效', 'default' => true])]
+    #[Assert\Type(type: 'bool')]
     private bool $valid = true;
 
-
+    /**
+     * @var Collection<int, Currency>
+     */
     #[ORM\OneToMany(targetEntity: Currency::class, mappedBy: 'country', fetch: 'EXTRA_LAZY')]
     private Collection $currencies;
 
@@ -53,11 +65,9 @@ class Country implements \Stringable
         return $this->code;
     }
 
-    public function setCode(string $code): static
+    public function setCode(string $code): void
     {
         $this->code = $code;
-
-        return $this;
     }
 
     public function getName(): string
@@ -65,11 +75,9 @@ class Country implements \Stringable
         return $this->name;
     }
 
-    public function setName(string $name): static
+    public function setName(string $name): void
     {
         $this->name = $name;
-
-        return $this;
     }
 
     public function getFlagCode(): ?string
@@ -77,11 +85,9 @@ class Country implements \Stringable
         return $this->flagCode;
     }
 
-    public function setFlagCode(?string $flagCode): static
+    public function setFlagCode(?string $flagCode): void
     {
         $this->flagCode = $flagCode;
-
-        return $this;
     }
 
     public function isValid(): bool
@@ -89,13 +95,10 @@ class Country implements \Stringable
         return $this->valid;
     }
 
-    public function setValid(bool $valid): static
+    public function setValid(bool $valid): void
     {
         $this->valid = $valid;
-
-        return $this;
     }
-
 
     /**
      * @return Collection<int, Currency>
@@ -152,4 +155,4 @@ class Country implements \Stringable
     {
         return null !== $this->getId() ? "{$this->getName()}[{$this->getCode()}]" : '';
     }
-} 
+}

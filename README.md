@@ -1,6 +1,39 @@
-# Currency Manage Bundle
+# Currency Management Bundle
 
-货币管理 Bundle，提供货币信息管理和汇率更新功能。
+[![PHP Version](https://img.shields.io/packagist/php-v/tourze/currency-manage-bundle)](https://packagist.org/packages/tourze/currency-manage-bundle)
+[![License](https://img.shields.io/packagist/l/tourze/currency-manage-bundle)](https://packagist.org/packages/tourze/currency-manage-bundle)
+
+[![CI Status](https://img.shields.io/github/actions/workflow/status/tourze/currency-manage-bundle/ci.yml?branch=main)](https://github.com/tourze/currency-manage-bundle/actions)
+[![Code Coverage](https://img.shields.io/codecov/c/github/tourze/currency-manage-bundle)](https://codecov.io/gh/tourze/currency-manage-bundle)
+
+[English](README.md) | [中文](README.zh-CN.md)
+
+A Currency Management Bundle for Symfony that provides currency information management and exchange rate updates.
+
+## 目录
+
+- [功能特性](#功能特性)
+- [安装](#安装)
+- [配置](#配置)
+  - [1. 注册 Bundle](#1-注册-bundle)
+  - [2. 数据库迁移](#2-数据库迁移)
+  - [3. 路由配置](#3-路由配置)
+- [使用方法](#使用方法)
+  - [货币实体](#货币实体)
+  - [历史汇率实体](#历史汇率实体)
+  - [历史汇率查询](#历史汇率查询)
+  - [国旗服务](#国旗服务)
+  - [汇率更新命令](#汇率更新命令)
+- [国旗映射](#国旗映射)
+- [国旗图片接口](#国旗图片接口)
+- [EasyAdmin 管理界面](#easyadmin-管理界面)
+- [Advanced Usage](#advanced-usage)
+- [测试](#测试)
+- [数据库表结构](#数据库表结构)
+- [性能优化](#性能优化)
+- [数据清理](#数据清理)
+- [依赖](#依赖)
+- [许可证](#许可证)
 
 ## 功能特性
 
@@ -116,7 +149,7 @@ $availableFlags = $flagService->getAvailableFlags();
 
 ```bash
 # 手动更新汇率（同时记录历史数据）
-php bin/console curreny-manage:update-rate
+php bin/console currency-manage:update-rate
 
 # 定时任务会在每天 8:40 自动执行
 ```
@@ -144,7 +177,7 @@ Bundle 支持 176+ 种货币的国旗映射，覆盖率达到 61.75%，包括：
 
 ### 获取国旗图片
 
-```http
+```text
 GET /currency/flag/{code}
 ```
 
@@ -156,7 +189,7 @@ GET /currency/flag/{code}
 
 示例：
 
-```http
+```text
 GET /currency/flag/us
 GET /currency/flag/cn/1x1
 ```
@@ -174,6 +207,115 @@ Bundle 提供了完整的 EasyAdmin 管理界面：
 - 分页显示
 - 详情查看
 - 数据导出
+
+## Advanced Usage
+
+### 自定义汇率更新服务
+
+```php
+use Tourze\CurrencyManageBundle\Service\CurrencyRateService;
+
+class CustomCurrencyService
+{
+    public function __construct(
+        private CurrencyRateService $currencyRateService
+    ) {}
+
+    public function updateRatesFromCustomSource(): array
+    {
+        // 自定义汇率更新逻辑
+        $exchangeData = $this->fetchFromCustomAPI();
+        
+        $results = [];
+        foreach ($exchangeData as $code => $rate) {
+            $result = $this->currencyRateService->updateCurrencyRate(
+                $code,
+                $this->getCurrencyName($code),
+                $rate,
+                new \DateTimeImmutable(),
+                new \DateTimeImmutable()
+            );
+            $results[] = $result;
+        }
+        
+        return $results;
+    }
+}
+```
+
+### 扩展国旗映射
+
+```php
+use Tourze\CurrencyManageBundle\Service\FlagService;
+
+class ExtendedFlagService extends FlagService
+{
+    protected function getCustomMappings(): array
+    {
+        return [
+            'BTC' => 'bitcoin',  // 自定义映射
+            'ETH' => 'ethereum',
+            // 添加更多自定义映射...
+        ];
+    }
+}
+```
+
+### 历史汇率分析
+
+```php
+use Tourze\CurrencyManageBundle\Repository\CurrencyRateHistoryRepository;
+
+class CurrencyAnalyzer
+{
+    public function __construct(
+        private CurrencyRateHistoryRepository $historyRepository
+    ) {}
+
+    public function calculateVolatility(string $currencyCode, int $days = 30): float
+    {
+        $histories = $this->historyRepository->findByCurrencyCode($currencyCode, $days);
+        
+        if (count($histories) < 2) {
+            return 0.0;
+        }
+        
+        $rates = array_map(fn($h) => $h->getRateToCny(), $histories);
+        $mean = array_sum($rates) / count($rates);
+        
+        $variance = array_sum(array_map(fn($r) => pow($r - $mean, 2), $rates)) / count($rates);
+        
+        return sqrt($variance);
+    }
+}
+```
+
+### 事件监听
+
+```php
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+use Tourze\CurrencyManageBundle\Event\CurrencyRateUpdatedEvent;
+
+class CurrencyEventSubscriber implements EventSubscriberInterface
+{
+    public static function getSubscribedEvents(): array
+    {
+        return [
+            CurrencyRateUpdatedEvent::class => 'onCurrencyRateUpdated',
+        ];
+    }
+
+    public function onCurrencyRateUpdated(CurrencyRateUpdatedEvent $event): void
+    {
+        // 汇率更新后的自定义处理逻辑
+        $currency = $event->getCurrency();
+        $oldRate = $event->getOldRate();
+        $newRate = $event->getNewRate();
+        
+        // 例如：发送通知、更新缓存等
+    }
+}
+```
 
 ## 测试
 

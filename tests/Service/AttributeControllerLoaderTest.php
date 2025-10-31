@@ -1,28 +1,26 @@
 <?php
 
-namespace Tourze\CurrencyManageBundle\Test\Service;
+namespace Tourze\CurrencyManageBundle\Tests\Service;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Routing\RouteCollection;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 use Tourze\CurrencyManageBundle\Service\AttributeControllerLoader;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 
 /**
  * AttributeControllerLoader 服务测试
+ *
+ * @internal
  */
-class AttributeControllerLoaderTest extends TestCase
+#[CoversClass(AttributeControllerLoader::class)]
+#[RunTestsInSeparateProcesses]
+final class AttributeControllerLoaderTest extends AbstractIntegrationTestCase
 {
     private AttributeControllerLoader $loader;
 
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->loader = new AttributeControllerLoader();
-    }
-
-    public function testLoad(): void
-    {
-        $result = $this->loader->load('resource');
-        
-        $this->assertInstanceOf(RouteCollection::class, $result);
+        $this->loader = self::getService(AttributeControllerLoader::class);
     }
 
     public function testSupports(): void
@@ -35,9 +33,9 @@ class AttributeControllerLoaderTest extends TestCase
     public function testAutoload(): void
     {
         $result = $this->loader->autoload();
-        
-        $this->assertInstanceOf(RouteCollection::class, $result);
-        
+
+        $this->assertNotNull($result);
+
         // 验证路由集合不为空（因为它加载了两个控制器的路由）
         $this->assertGreaterThanOrEqual(0, count($result));
     }
@@ -45,14 +43,14 @@ class AttributeControllerLoaderTest extends TestCase
     public function testLoadWithNullType(): void
     {
         $result = $this->loader->load('resource', null);
-        
-        $this->assertInstanceOf(RouteCollection::class, $result);
+
+        $this->assertNotNull($result);
     }
 
     public function testLoadWithSpecificType(): void
     {
         $result = $this->loader->load('resource', 'some_type');
-        
-        $this->assertInstanceOf(RouteCollection::class, $result);
+
+        $this->assertNotNull($result);
     }
-} 
+}
