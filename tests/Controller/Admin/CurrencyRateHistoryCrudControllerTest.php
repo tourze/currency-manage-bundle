@@ -29,34 +29,26 @@ final class CurrencyRateHistoryCrudControllerTest extends AbstractEasyAdminContr
 
     public function testCurrencyRateHistoryListPageAccess(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/admin/currency/rate-history');
-        self::getClient($client);
         $this->assertResponseIsSuccessful();
     }
 
     public function testCurrencyRateHistoryCreateFormAccessForbidden(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 期望抛出 ForbiddenActionException，表示NEW操作被禁用
         $this->expectException(ForbiddenActionException::class);
         $this->expectExceptionMessage('You don\'t have enough permissions to run the "new" action');
 
         $client->request('GET', '/admin/currency/rate-history/new');
-        self::getClient($client);
     }
 
     public function testCurrencyRateHistoryEditFormAccessForbidden(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 期望抛出 ForbiddenActionException，表示EDIT操作被禁用
         $this->expectException(ForbiddenActionException::class);
@@ -64,14 +56,11 @@ final class CurrencyRateHistoryCrudControllerTest extends AbstractEasyAdminContr
 
         // 尝试访问编辑页面（假设ID=1的记录存在）
         $client->request('GET', '/admin/currency/rate-history/1/edit');
-        self::getClient($client);
     }
 
     public function testCurrencyRateHistoryDeleteActionForbidden(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 期望抛出 MethodNotAllowedHttpException，因为DELETE操作没有路由
         $this->expectException(MethodNotAllowedHttpException::class);
@@ -79,7 +68,6 @@ final class CurrencyRateHistoryCrudControllerTest extends AbstractEasyAdminContr
 
         // 尝试删除操作（假设ID=1的记录存在）
         $client->request('DELETE', '/admin/currency/rate-history/1');
-        self::getClient($client);
     }
 
     protected function getControllerService(): CurrencyRateHistoryCrudController

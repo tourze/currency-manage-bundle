@@ -22,13 +22,9 @@ final class CountryCrudControllerTest extends AbstractEasyAdminControllerTestCas
 {
     public function testCountryEntityFqcnConfiguration(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/admin/currency/country');
-        // 手动设置静态client以便Symfony断言能够工作
-        self::getClient($client);
         $this->assertResponseIsSuccessful();
 
         $entityClass = CountryCrudController::getEntityFqcn();
@@ -39,34 +35,26 @@ final class CountryCrudControllerTest extends AbstractEasyAdminControllerTestCas
 
     public function testCountryListPageAccess(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/admin/currency/country');
-        self::getClient($client);
         $this->assertResponseIsSuccessful();
     }
 
     public function testCountryCreateFormAccessForbidden(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 期望抛出 ForbiddenActionException，表示NEW操作被禁用
         $this->expectException(ForbiddenActionException::class);
         $this->expectExceptionMessage('You don\'t have enough permissions to run the "new" action');
 
         $client->request('GET', '/admin/currency/country/new');
-        self::getClient($client);
     }
 
     public function testCountryEditFormAccessForbidden(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 期望抛出 ForbiddenActionException，表示EDIT操作被禁用
         $this->expectException(ForbiddenActionException::class);
@@ -74,14 +62,11 @@ final class CountryCrudControllerTest extends AbstractEasyAdminControllerTestCas
 
         // 尝试访问编辑页面（假设ID=1的记录存在）
         $client->request('GET', '/admin/currency/country/1/edit');
-        self::getClient($client);
     }
 
     public function testCountryDeleteActionForbidden(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 期望抛出 MethodNotAllowedHttpException，因为DELETE操作没有路由
         $this->expectException(MethodNotAllowedHttpException::class);
@@ -89,14 +74,11 @@ final class CountryCrudControllerTest extends AbstractEasyAdminControllerTestCas
 
         // 尝试删除操作（假设ID=1的记录存在）
         $client->request('DELETE', '/admin/currency/country/1');
-        self::getClient($client);
     }
 
     public function testValidationErrors(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 测试实体层验证 - 提交空必填字段应该失败
         $country = new Country();

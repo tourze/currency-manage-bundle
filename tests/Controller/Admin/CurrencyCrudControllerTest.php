@@ -20,12 +20,9 @@ final class CurrencyCrudControllerTest extends AbstractEasyAdminControllerTestCa
 {
     public function testCurrencyEntityFqcnConfiguration(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/admin/currency/currency');
-        self::getClient($client);
         $this->assertResponseIsSuccessful();
 
         $entityClass = CurrencyCrudController::getEntityFqcn();
@@ -36,23 +33,17 @@ final class CurrencyCrudControllerTest extends AbstractEasyAdminControllerTestCa
 
     public function testCurrencyListPageAccess(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         $client->request('GET', '/admin/currency/currency');
-        self::getClient($client);
         $this->assertResponseIsSuccessful();
     }
 
     public function testCurrencyCreateFormAccess(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         $crawler = $client->request('GET', '/admin/currency/currency/new');
-        self::getClient($client);
         $this->assertResponseIsSuccessful();
 
         // 检查表单是否存在
@@ -61,9 +52,7 @@ final class CurrencyCrudControllerTest extends AbstractEasyAdminControllerTestCa
 
     public function testValidationErrors(): void
     {
-        $client = self::createClientWithDatabase();
-        $admin = $this->createAdminUser('admin@test.com', 'password123');
-        $this->loginAsAdmin($client, 'admin@test.com', 'password123');
+        $client = $this->createAuthenticatedClient();
 
         // 测试实体层验证 - 提交空必填字段应该失败
         $currency = new Currency();
